@@ -7,6 +7,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,12 +19,14 @@ public class AuthService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
     @Autowired
-    public AuthService(UserRepository userRepository, ModelMapper modelMapper, BCryptPasswordEncoder passwordEncoder){
+    public AuthService(UserRepository userRepository, ModelMapper modelMapper, BCryptPasswordEncoder passwordEncoder, AuthenticationManager authenticationManager){
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
     }
 
     private APIResponse<?> validateUser(RegisterUserDTO userDTO){
@@ -60,6 +65,17 @@ public class AuthService {
     }
 
     private APIResponse<?> authenticate(User user, @Valid LoginCredentials loginCredentials, HttpServletResponse response) {
-        return APIResponse.success(user, "Hhhh");
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginCredentials.getEmail(), loginCredentials.getPassword())
+            );
+            if(!authentication.isAuthenticated()){
+                return APIResponse.error("Wrong credentials");
+            }
+
+            return APIResponse.success(user, "Successfully authenticated");
+        }catch (Exception e){
+            return APIResponse.error("Hhhh");
+        }
     }
 }
