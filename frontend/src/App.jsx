@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import Landing from './pages/Landing';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import Login from './pages/LoginPage/Login.jsx';
+import Register from './pages/RegisterPage/Register.jsx';
 import Dashboard from './pages/Dashboard';
 
 const ProtectedRoute = ({ children }) => {
