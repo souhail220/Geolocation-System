@@ -17,16 +17,18 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final AuthenticationManager authenticationManager;
     private final ModelMapper modelMapper;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     @Autowired
-    public AuthService(UserRepository userRepository, ModelMapper modelMapper, BCryptPasswordEncoder passwordEncoder, AuthenticationManager authenticationManager){
+    public AuthService(UserRepository userRepository, ModelMapper modelMapper, BCryptPasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService){
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     private APIResponse<?> validateUser(RegisterUserDTO userDTO){
@@ -52,7 +54,7 @@ public class AuthService {
         User user = modelMapper.map(userDTO, User.class);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
-        return APIResponse.success(modelMapper.map(user, LoggedUserDTO.class));
+        return APIResponse.success(modelMapper.map(user, UserDTO.class));
     }
 
     public APIResponse<?> loginUser(@Valid LoginCredentials loginCredentials, HttpServletResponse response) {
@@ -73,7 +75,9 @@ public class AuthService {
                 return APIResponse.error("Wrong credentials");
             }
 
-            return APIResponse.success(user, "Successfully authenticated");
+            String token = jwtService.generateToken(user);
+            response.setHeader("Authorization", token);
+            return APIResponse.success(modelMapper.map(user, UserDTO.class), "Successfully authenticated");
         }catch (Exception e){
             return APIResponse.error("Hhhh");
         }
