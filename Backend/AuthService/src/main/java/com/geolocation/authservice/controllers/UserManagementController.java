@@ -1,11 +1,13 @@
 package com.geolocation.authservice.controllers;
 
+import com.geolocation.authservice.data.models.APIResponse;
 import com.geolocation.authservice.data.models.UserDTO;
 import com.geolocation.authservice.services.UserManagementService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,10 +26,23 @@ public class UserManagementController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<UserDTO>> getUsers(
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    public ResponseEntity<APIResponse<Page<UserDTO>>> getUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ){
         return ResponseEntity.ok(userManagementService.getUsers(page, size));
+    }
+
+    @GetMapping("team")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    public ResponseEntity<APIResponse<?>> getUsersByTeam(@RequestParam int teamId){
+        APIResponse<?> apiResponse = userManagementService.getUsersByTeam(teamId);
+
+        if(apiResponse.isSuccess()){
+            return ResponseEntity.ok(apiResponse);
+        }
+
+        return ResponseEntity.notFound().build();
     }
 }
