@@ -45,25 +45,15 @@ const LoginForm = ({ onSubmit, isLoading, error }) => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                    <label htmlFor="email" className="block text-sm font-medium mb-2">
-                        Email Address
-                    </label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="operator@yourorg.com"
-                        required
-                        className="w-full px-4 py-3 bg-bg-card border border-border rounded focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all font-mono placeholder:text-text-muted"
+                    <label htmlFor="email" className="block text-md text-white font-medium mb-2">Email Address</label>
+                    <input type="email" id="email" name="email" value={formData.email} onChange={handleChange}
+                           placeholder="operator@yourorg.com" required
+                           className= "text-lg w-full px-3 py-2 bg-bg-card border border-border rounded focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all font-mono placeholder:text-text-muted"
                     />
                 </div>
 
                 <div>
-                    <label htmlFor="password" className="block text-sm font-medium mb-2">
-                        Password
-                    </label>
+                    <label htmlFor="password" className="block text-sm font-medium mb-2">Password</label>
                     <div className="relative">
                         <input
                             type={showPassword ? 'text' : 'password'}
@@ -72,7 +62,7 @@ const LoginForm = ({ onSubmit, isLoading, error }) => {
                             value={formData.password}
                             onChange={handleChange}
                             required
-                            className="w-full px-4 py-3 bg-bg-card border border-border rounded focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all font-mono"
+                            className="text-lg w-full px-3 py-2 bg-bg-card border border-border rounded focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all font-mono"
                         />
                         <button
                             type="button"
