@@ -1,0 +1,39 @@
+/* Leaflet base styles + custom marker styles */
+@import "leaflet/dist/leaflet.css";
+@import "leaflet.markercluster/dist/MarkerCluster.css";
+@import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+
+.radio-marker {
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.25);
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+.radio-marker.active { background-color: #059669; }
+.radio-marker.inactive { background-color: #D97706; }
+.radio-marker.stolen {
+  background-color: #DC2626;
+  animation: radio-pulse 1.4s ease-out infinite;
+}
+.radio-marker.flash {
+  transform: scale(1.6);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.35);
+}
+
+@keyframes radio-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.55); }
+  70% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
+/* Cluster overrides */
+.marker-cluster-mostly-active div { background-color: rgba(5, 150, 105, 0.85); color: white; }
+.marker-cluster-mostly-active { background-color: rgba(5, 150, 105, 0.35); }
+.marker-cluster-has-stolen div { background-color: rgba(220, 38, 38, 0.9); color: white; }
+.marker-cluster-has-stolen { background-color: rgba(220, 38, 38, 0.3); }
+.marker-cluster-mostly-inactive div { background-color: rgba(217, 119, 6, 0.9); color: white; }
+.marker-cluster-mostly-inactive { background-color: rgba(217, 119, 6, 0.3); }
+
+.leaflet-container { font-family: inherit; }

@@ -3,7 +3,11 @@ services:
     image: ditoo2/geo-authservice:latest
     container_name: AuthService
     ports:
-      - 8080:8080
+      - "8080:8080"
+    environment:
+      - Spring_Datasource_Url=jdbc:postgresql://ep-shrill-cherry-a8kycf0v-pooler.eastus2.azure.neon.tech/RadioAuthDB?sslmode=require&channelBinding=require
+      - Spring_Datasource_Username=Ditoo2
+      - Spring_Datasource_Password=npg_CpG6mKYlTd0o
     networks:
       - backend-network
 
@@ -11,7 +15,7 @@ services:
     image: ditoo2/geo-notificationservice:latest
     container_name: NotificationService
     ports:
-      - 8082:8082
+      - "8082:8082"
     networks:
       - backend-network
 
@@ -19,7 +23,7 @@ services:
     image: ditoo2/geo-radioservice:latest
     container_name: RadioManagementService
     ports:
-      - 8081:8081
+      - "8081:8081"
     networks:
       - backend-network
 
