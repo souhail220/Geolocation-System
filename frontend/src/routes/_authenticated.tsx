@@ -2,8 +2,20 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { PermissionGuard } from "@/components/PermissionGuard";
+import { hasStoredAuthToken } from "@/lib/authStorage";
 import type { Role } from "@/types/auth";
-import { LayoutDashboard, Map as MapIcon, History, Bell, Shield, LogOut, ChevronLeft, ChevronRight, Radio, Menu } from "lucide-react";
+import {
+  LayoutDashboard,
+  Map as MapIcon,
+  History,
+  Bell,
+  Shield,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+  Radio,
+  Menu,
+} from "lucide-react";
 
 type NavItem = {
   to: "/" | "/map" | "/history" | "/alerts" | "/admin";
@@ -12,6 +24,7 @@ type NavItem = {
   exact?: boolean;
   roles?: Role[];
 };
+
 const NAV: NavItem[] = [
   { to: "/", label: "Tableau de bord", icon: LayoutDashboard, exact: true },
   { to: "/map", label: "Carte en direct", icon: MapIcon },
@@ -39,7 +52,7 @@ export default function AuthenticatedLayout() {
   }, [hydrate]);
 
   useEffect(() => {
-    if (!isAuthenticated && typeof window !== "undefined" && !localStorage.getItem("auth_token")) {
+    if (!isAuthenticated && !hasStoredAuthToken()) {
       navigate("/login");
     }
   }, [isAuthenticated, navigate]);
@@ -50,7 +63,8 @@ export default function AuthenticatedLayout() {
   };
 
   const breadcrumb =
-    NAV.find((n) => (n.exact ? pathname === n.to : pathname.startsWith(n.to)))?.label ?? "Tableau de bord";
+    NAV.find((n) => (n.exact ? pathname === n.to : pathname.startsWith(n.to)))?.label ??
+    "Tableau de bord";
 
   const sidebarWidth = collapsed ? "w-14" : "w-60";
 
@@ -58,7 +72,7 @@ export default function AuthenticatedLayout() {
     <div className="flex min-h-screen w-full bg-surface text-foreground">
       {/* Mobile drawer overlay */}
       {mobileOpen && (
-        <div
+        <button
           className="fixed inset-0 z-40 bg-black/40 md:hidden"
           onClick={() => setMobileOpen(false)}
         />
@@ -70,7 +84,9 @@ export default function AuthenticatedLayout() {
           mobileOpen ? "translate-x-0 w-60" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        <div className={`flex h-14 items-center gap-2 border-b border-white/10 px-4 ${collapsed ? "justify-center px-0" : ""}`}>
+        <div
+          className={`flex h-14 items-center gap-2 border-b border-white/10 px-4 ${collapsed ? "justify-center px-0" : ""}`}
+        >
           <Radio className="h-5 w-5 text-blue-accent shrink-0" />
           {!collapsed && <span className="font-semibold tracking-tight">RadioGeo</span>}
         </div>
@@ -109,7 +125,13 @@ export default function AuthenticatedLayout() {
           onClick={() => setCollapsed((c) => !c)}
           className="hidden md:flex items-center justify-center gap-2 border-t border-white/10 py-3 text-xs text-white/70 hover:bg-navy-mid hover:text-white"
         >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : (<><ChevronLeft className="h-4 w-4" /> Réduire</>)}
+          {collapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <>
+              <ChevronLeft className="h-4 w-4" /> Réduire
+            </>
+          )}
         </button>
       </aside>
 
@@ -140,11 +162,18 @@ export default function AuthenticatedLayout() {
             {user && (
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-accent text-xs font-semibold text-white">
-                  {user.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()}
+                  {user.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase()}
                 </div>
                 <div className="hidden sm:flex flex-col leading-tight">
                   <span className="text-sm font-medium">{user.name}</span>
-                  <span className={`mt-0.5 inline-block w-fit rounded-full px-2 py-0.5 text-[10px] font-medium ${ROLE_BADGE[user.role].cls}`}>
+                  <span
+                    className={`mt-0.5 inline-block w-fit rounded-full px-2 py-0.5 text-[10px] font-medium ${ROLE_BADGE[user.role].cls}`}
+                  >
                     {ROLE_BADGE[user.role].label}
                   </span>
                 </div>

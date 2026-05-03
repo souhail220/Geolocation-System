@@ -1,22 +1,29 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FormEvent, useState } from "react";
-import { useAuthStore } from "@/store/authStore";
-import type { Role } from "@/types/auth";
+import { useAuthStore } from "@/store/authStore.ts";
 import { Radio, X } from "lucide-react";
+import LoginForm from "@/pages/loginPage/loginForm.tsx";
+import type { Role } from "@/types/auth.ts";
+
+export interface LoginFormState {
+  email: string;
+  password: string;
+}
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState<Role>("operator");
+  const [form, setForm] = useState<LoginFormState>({
+    email: "",
+    password: "",
+  });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!email || !password) {
+    if (!form.email || !form.password) {
       setError("Veuillez renseigner votre email et votre mot de passe.");
       return;
     }
@@ -24,13 +31,13 @@ export default function LoginPage() {
     try {
       // Mock auth — accept any credentials
       await new Promise((r) => setTimeout(r, 400));
-      const name = email.split("@")[0].replace(/\W+/g, " ").trim() || "Utilisateur";
-      const token = `mock.${btoa(email)}.${Date.now()}`;
+      const name = form.email.split("@")[0].replace(/\W+/g, " ").trim() || "Utilisateur";
+      const token = `mock.${btoa(form.email)}.${Date.now()}`;
       login(token, {
         id: crypto.randomUUID(),
-        email,
+        email: form.email,
         name: name.replace(/\b\w/g, (c) => c.toUpperCase()),
-        role,
+        role: "operator" satisfies Role,
       });
       navigate("/map");
     } catch {
@@ -88,44 +95,15 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={onSubmit} className="mt-6 space-y-4">
-            <FloatingInput label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" />
-            <FloatingInput label="Mot de passe" type="password" value={password} onChange={setPassword} autoComplete="current-password" />
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-md bg-blue-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-accent/90 disabled:opacity-60"
-            >
-              {loading ? "Connexion…" : "Se connecter"}
-            </button>
-          </form>
+          <LoginForm onSubmit={onSubmit} isLoading={loading} form={form} setForm={setForm} />
+          <p className="mt-3 text-center text-sm text-slate">
+            Pas encore de compte ?{" "}
+            <Link to="/register" className="font-medium text-blue-accent hover:underline">
+              Créer un compte
+            </Link>
+          </p>
         </div>
       </div>
-    </div>
-  );
-}
-
-function FloatingInput({ label, type, value, onChange, autoComplete }: Readonly<{
-  type: string,
-  value: string,
-  onChange: (v: string) => void,
-  autoComplete?: string,
-  label?: string
-}>) {
-  return (
-    <div className="relative">
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        autoComplete={autoComplete}
-        placeholder=" "
-        className="peer w-full rounded-md border border-border bg-white px-3 pt-5 pb-2 text-sm outline-none transition-colors focus:border-blue-accent focus:ring-2 focus:ring-blue-accent/30"
-      />
-      <label className="pointer-events-none absolute left-3 top-1.5 text-[11px] font-medium text-slate transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-focus:top-1.5 peer-focus:text-[11px] peer-focus:text-blue-accent">
-        {label}
-      </label>
     </div>
   );
 }

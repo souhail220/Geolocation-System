@@ -1,6 +1,7 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
+import { clearStoredAuthSession, getStoredAuthToken } from "@/lib/authStorage";
 
-const baseURL = (import.meta as any).env?.VITE_API_BASE_URL ?? "/api";
+const baseURL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
 export const api = axios.create({
   baseURL,
@@ -8,13 +9,12 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  if (typeof window !== "undefined") {
-    const token = window.localStorage.getItem("auth_token");
-    if (token) {
-      config.headers = config.headers ?? {};
-      (config.headers as any).Authorization = `Bearer ${token}`;
-    }
+  const token = getStoredAuthToken();
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
 });
 
@@ -22,8 +22,7 @@ api.interceptors.response.use(
   (res) => res,
   (error: AxiosError) => {
     if (error.response?.status === 401 && typeof window !== "undefined") {
-      window.localStorage.removeItem("auth_token");
-      window.localStorage.removeItem("auth_user");
+      clearStoredAuthSession();
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
