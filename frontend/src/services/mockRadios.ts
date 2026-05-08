@@ -31,25 +31,49 @@ function serial(): string {
   return `RAD-${a}-${b}-${c}`;
 }
 
+function generateHistory(latitude: number, longitude: number, timestamp: number): Radio["history"] {
+  const points: Radio["history"] = [];
+  let lat = latitude - rand(-0.006, 0.006);
+  let lng = longitude - rand(-0.006, 0.006);
+  const pointCount = randInt(10, 16);
+
+  for (let i = pointCount; i > 0; i--) {
+    const progress = (pointCount - i + 1) / pointCount;
+    lat += (latitude - lat) * 0.22 + rand(-0.0012, 0.0012);
+    lng += (longitude - lng) * 0.22 + rand(-0.0012, 0.0012);
+    points.push({
+      latitude: +lat.toFixed(7),
+      longitude: +lng.toFixed(7),
+      timestamp: timestamp - Math.round((1 - progress) * 6 * 60 * 60) - i * 5 * 60,
+    });
+  }
+
+  return points;
+}
+
 export function generateMockRadios(count = 5000): Radio[] {
   const list: Radio[] = [];
   for (let i = 0; i < count; i++) {
     const active = Math.random() < 0.8;
     const isStolen = Math.random() < 0.03;
     const outsideZone = Math.random() < 0.15;
+    const latitude = +rand(30, 37).toFixed(7);
+    const longitude = +rand(8, 13).toFixed(7);
+    const timestamp = Math.floor(Date.now() / 1000) - randInt(0, 86400);
     list.push({
       radioId: shortId(22),
       serialNumber: serial(),
       name: `${NAMES[i % NAMES.length]} ${i + 1}`,
       team: TEAMS[i % TEAMS.length],
       isStolen,
-      latitude: +rand(30, 37).toFixed(7),
-      longitude: +rand(8, 13).toFixed(7),
+      latitude,
+      longitude,
       battery: +rand(10, 100).toFixed(2),
       signalStrength: randInt(-120, -50),
       active,
       outsideZone,
-      timestamp: Math.floor(Date.now() / 1000) - randInt(0, 86400),
+      timestamp,
+      history: generateHistory(latitude, longitude, timestamp),
     });
   }
   return list;

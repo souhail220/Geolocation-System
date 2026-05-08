@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import { CircleMarker, MapContainer, Polyline, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet.markercluster";
 import { useRadioStore, selectFilteredRadios, type FilterStatus } from "@/store/radioStore";
@@ -156,6 +156,41 @@ function PanTo({ target }: { target: Radio | null }) {
   return null;
 }
 
+function RadioHistoryTrail({ radio }: { radio: Radio | null }) {
+  if (!radio || !radio.history.length) return null;
+
+  const positions = [
+    ...radio.history.map((p) => [p.latitude, p.longitude] as [number, number]),
+    [radio.latitude, radio.longitude] as [number, number],
+  ];
+
+  return (
+    <>
+      <Polyline
+        positions={positions}
+        pathOptions={{ color: "#2563EB", weight: 3, opacity: 0.55, dashArray: "6 7" }}
+      />
+      {radio.history.map((point, index) => {
+        const opacity = 0.22 + (index / Math.max(1, radio.history.length - 1)) * 0.38;
+        return (
+          <CircleMarker
+            key={`${point.timestamp}-${index}`}
+            center={[point.latitude, point.longitude]}
+            radius={4}
+            pathOptions={{
+              color: "#1D4ED8",
+              fillColor: "#60A5FA",
+              fillOpacity: opacity,
+              opacity,
+              weight: 1,
+            }}
+          />
+        );
+      })}
+    </>
+  );
+}
+
 const FILTERS: { value: FilterStatus; label: string }[] = [
   { value: "all", label: "Tous" },
   { value: "active", label: "Actifs" },
@@ -264,6 +299,7 @@ export default function MapPage() {
               attribution={TILE_LAYERS[tileKey].attribution}
             />
             <ClusteredMarkers radios={filtered} onSelect={handleSelect} />
+            <RadioHistoryTrail radio={selectedRadio} />
             <PanTo target={panTarget} />
           </MapContainer>
 

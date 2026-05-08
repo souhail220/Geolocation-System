@@ -1,3 +1,9 @@
+export interface RadioHistoryPoint {
+  latitude: number;
+  longitude: number;
+  timestamp: number;
+}
+
 export interface Radio {
   radioId: string;
   serialNumber: string;
@@ -11,4 +17,5 @@ export interface Radio {
   active: boolean;
   outsideZone: boolean;
   timestamp: number;
+  history: RadioHistoryPoint[];
 }

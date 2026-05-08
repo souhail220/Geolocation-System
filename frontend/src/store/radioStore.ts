@@ -32,12 +32,38 @@ export const useRadioStore = create<RadioState>((set) => ({
     set((state) => {
       const radios = state.radios.map((r) =>
         r.radioId === radioId
-          ? { ...r, latitude: lat, longitude: lng, battery, signalStrength, timestamp }
+          ? {
+              ...r,
+              latitude: lat,
+              longitude: lng,
+              battery,
+              signalStrength,
+              timestamp,
+              history: [
+                ...(r.history ?? []),
+                { latitude: r.latitude, longitude: r.longitude, timestamp: r.timestamp },
+              ].slice(-24),
+            }
           : r,
       );
       const selectedRadio =
         state.selectedRadio && state.selectedRadio.radioId === radioId
-          ? { ...state.selectedRadio, latitude: lat, longitude: lng, battery, signalStrength, timestamp }
+          ? {
+              ...state.selectedRadio,
+              latitude: lat,
+              longitude: lng,
+              battery,
+              signalStrength,
+              timestamp,
+              history: [
+                ...(state.selectedRadio.history ?? []),
+                {
+                  latitude: state.selectedRadio.latitude,
+                  longitude: state.selectedRadio.longitude,
+                  timestamp: state.selectedRadio.timestamp,
+                },
+              ].slice(-24),
+            }
           : state.selectedRadio;
       return { radios, selectedRadio };
     }),
