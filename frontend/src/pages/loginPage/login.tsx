@@ -1,13 +1,28 @@
 import { Link, useNavigate } from "react-router-dom";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { useAuthStore } from "@/store/authStore.ts";
 import { Radio, X } from "lucide-react";
 import LoginForm from "@/pages/loginPage/loginForm.tsx";
-import type { Role } from "@/types/auth.ts";
+import { LoginApi } from "@/services/authentication/authService.tsx";
+import { ApiResponseUser } from "@/types/authTypes/authResponse.ts";
+import type { User } from "@/types/auth.ts";
 
 export interface LoginFormState {
   email: string;
   password: string;
+}
+
+function normalizeLoginUser(data: User, emailFallback: string): User {
+  const responseUser = data.result ?? data.message;
+  const email = responseUser?.email ?? emailFallback;
+
+  return {
+    id: String(responseUser?.id ?? crypto.randomUUID()),
+    email,
+    firstname: responseUser?.firstName?.trim(),
+    lastname: responseUser?.firstName?.trim(),
+    role: responseUser?.role ?? "OBSERVER",
+  };
 }
 
 export default function LoginPage() {
@@ -20,7 +35,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const onSubmit = async (e: FormEvent) => {
+  const onSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
     setError(null);
     if (!form.email || !form.password) {
@@ -29,17 +44,14 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      // Mock auth — accept any credentials
-      await new Promise((r) => setTimeout(r, 400));
-      const name = form.email.split("@")[0].replace(/\W+/g, " ").trim() || "Utilisateur";
-      const token = `mock.${btoa(form.email)}.${Date.now()}`;
-      login(token, {
-        id: crypto.randomUUID(),
-        email: form.email,
-        name: name.replace(/\b\w/g, (c) => c.toUpperCase()),
-        role: "operator" satisfies Role,
-      });
-      navigate("/map");
+      const data : ApiResponseUser = await LoginApi(form.email, form.password);
+
+      if (!data.token) {
+        throw new Error("Missing login token");
+      }
+
+      login(data.token, normalizeLoginUser(data.result, form.email));
+      navigate("/");
     } catch {
       setError("Échec de la connexion. Veuillez réessayer.");
     } finally {

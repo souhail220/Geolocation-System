@@ -26,8 +26,8 @@ public class AuthController {
     }
 
     @PostMapping("register")
-    public ResponseEntity<APIResponse<?>> registerUser(@Valid @RequestBody RegisterUserDTO userDTO){
-        APIResponse<?> apiResponse = authService.registerUser(userDTO);
+    public ResponseEntity<APIResponse<?>> registerUser(@Valid @RequestBody RegisterUserDTO userDTO, HttpServletResponse response){
+        APIResponse<?> apiResponse = authService.registerUser(userDTO, response);
         if(apiResponse.isSuccess()){
             return ResponseEntity.created(URI.create("/api/auth/user")).body(apiResponse);
         }

@@ -35,16 +35,14 @@ export default function RegisterForm({ onSubmit, form, isLoading, setForm } : Re
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label htmlFor="role" className="mb-1 block text-xs font-medium text-slate">Rôle</label>
-          <select
-            id="role"
+          <select id="role"
             value={form.role}
             onChange={(e) => set("role", e.target.value as Role)}
             className="w-full rounded-md border border-border bg-white px-2 py-3 text-md outline-none focus:border-blue-accent focus:ring-2 focus:ring-blue-accent/30"
           >
-            <option value="admin">Admin</option>
-            <option value="supervisor">Supervisor</option>
-            <option value="operator">Operator</option>
-            <option value="viewer">Viewer</option>
+            <option value="ADMINISTRATOR">Administrator</option>
+            <option value="MANAGER">Supervisor</option>
+            <option value="OBSERVER">Operator</option>
           </select>
         </div>
         <div>

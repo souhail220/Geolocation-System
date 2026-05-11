@@ -1,9 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { useAuthStore } from "@/store/authStore.ts";
-import type { Role } from "@/types/auth.ts";
+import type { Role, User } from "@/types/auth.ts";
 import { Radio, X } from "lucide-react";
 import RegisterForm from "@/pages/registerPage/registerForm.tsx";
+import { RegisterApi } from "@/services/authentication/authService.tsx";
+import { ApiResponseUser } from "@/types/authTypes/authResponse.ts";
+import { RegisterUser } from "@/types/auth.ts";
 
 interface FormState {
   email: string;
@@ -12,7 +15,20 @@ interface FormState {
   password: string;
   phone_number: string;
   role: Role;
-  team_id: string;
+  team_id: number;
+}
+
+function normalizeLoginUser(data: User, emailFallback: string): User {
+  const responseUser = data.result ?? data.message;
+  const email = responseUser?.email ?? emailFallback;
+
+  return {
+    id: String(responseUser?.id ?? crypto.randomUUID()),
+    email,
+    firstname: responseUser?.firstName?.trim(),
+    lastname: responseUser?.firstName?.trim(),
+    role: responseUser?.role ?? "OBSERVER",
+  };
 }
 
 export default function RegisterPage() {
@@ -24,14 +40,14 @@ export default function RegisterPage() {
     last_name: "",
     password: "",
     phone_number: "",
-    role: "operator",
-    team_id: "",
+    role: "OBSERVER",
+    team_id: 0,
   });
   const [error, setError] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
 
-  const onSubmit = async (e: FormEvent) => {
+  const onSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
     setError(null);
     if (!form.email || !form.password || !form.first_name || !form.last_name || !form.team_id) {
@@ -46,21 +62,30 @@ export default function RegisterPage() {
       setError("Le mot de passe doit contenir au moins 6 caractères.");
       return;
     }
-    const teamId = parseInt(form.team_id, 10);
-    if (Number.isNaN(teamId)) {
+    if (Number.isNaN(form.team_id)) {
       setError("L'identifiant d'équipe doit être un nombre.");
       return;
     }
     setLoading(true);
+    console.log(form);
+
     try {
-      await new Promise((r) => setTimeout(r, 400));
-      const token = `mock.${btoa(form.email)}.${Date.now()}`;
-      login(token, {
-        id: crypto.randomUUID(),
+      const registerUser: RegisterUser = {
+        firstName: form.first_name,
+        lastName: form.last_name,
         email: form.email,
-        name: `${form.first_name} ${form.last_name}`.trim(),
-        role: form.role,
-      });
+        password: form.password,
+        phoneNumber: form.phone_number,
+        teamId: form.team_id,
+        role: form.role
+      }
+      const data: ApiResponseUser =await RegisterApi(registerUser);
+
+      if (!data.token) {
+        throw new Error("Missing login token");
+      }
+
+      login(data.token, normalizeLoginUser(data.result, form.email));
       console.log(form)
       navigate("/map");
     } catch {

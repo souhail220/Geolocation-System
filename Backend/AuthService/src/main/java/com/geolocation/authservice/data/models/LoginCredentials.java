@@ -15,4 +15,9 @@ public class LoginCredentials {
     @NotBlank
     @Size(min = 8, message = "Password must be at least 8 chars")
     private String password;
+
+    public LoginCredentials(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
 }

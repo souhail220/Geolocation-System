@@ -33,12 +33,12 @@ const NAV: NavItem[] = [
   { to: "/admin", label: "Administration", icon: Shield, roles: ["admin"] },
 ];
 
-const ROLE_BADGE: Record<Role, { label: string; cls: string }> = {
-  admin: { label: "Admin", cls: "bg-[#DBEAFE] text-[#1E3A5F]" },
-  supervisor: { label: "Supervisor", cls: "bg-[#CCFBF1] text-[#134E4A]" },
-  operator: { label: "Operator", cls: "bg-[#FEF3C7] text-[#78350F]" },
-  viewer: { label: "Viewer", cls: "bg-[#F3F4F6] text-[#1F2937]" },
-};
+// const ROLE_BADGE: Record<Role, { label: string; cls: string }> = {
+//   admin: { label: "Admin", cls: "bg-[#DBEAFE] text-[#1E3A5F]" },
+//   supervisor: { label: "Supervisor", cls: "bg-[#CCFBF1] text-[#134E4A]" },
+//   operator: { label: "Operator", cls: "bg-[#FEF3C7] text-[#78350F]" },
+//   viewer: { label: "Viewer", cls: "bg-[#F3F4F6] text-[#1F2937]" },
+// };
 
 export default function AuthenticatedLayout() {
   const navigate = useNavigate();
@@ -67,6 +67,14 @@ export default function AuthenticatedLayout() {
     "Tableau de bord";
 
   const sidebarWidth = collapsed ? "w-14" : "w-60";
+  const displayName = user?.name?.trim() || user?.email || "Utilisateur";
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  //const roleBadge = user?.role ? ROLE_BADGE[user.role] : ROLE_BADGE.viewer;
 
   return (
     <div className="flex min-h-screen w-full bg-surface text-foreground">
@@ -162,19 +170,14 @@ export default function AuthenticatedLayout() {
             {user && (
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-accent text-xs font-semibold text-white">
-                  {user.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .slice(0, 2)
-                    .join("")
-                    .toUpperCase()}
+                  {initials}
                 </div>
                 <div className="hidden sm:flex flex-col leading-tight">
-                  <span className="text-sm font-medium">{user.name}</span>
+                  <span className="text-sm font-medium">{displayName}</span>
                   <span
-                    className={`mt-0.5 inline-block w-fit rounded-full px-2 py-0.5 text-[10px] font-medium ${ROLE_BADGE[user.role].cls}`}
+                    className={`mt-0.5 inline-block w-fit rounded-full px-2 py-0.5 text-[10px] font-medium {roleBadge.cls}`}
                   >
-                    {ROLE_BADGE[user.role].label}
+                    {}
                   </span>
                 </div>
               </div>

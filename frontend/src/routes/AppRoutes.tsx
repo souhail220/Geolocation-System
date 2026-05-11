@@ -30,7 +30,7 @@ export default function AppRoutes() {
       />
       <Route element={<RequireAuth />}>
         <Route index element={<Dashboard />} />
-        <Route path="map" element={<MapRoute />} />
+        <Route index path="map" element={<MapRoute />} />
         <Route path="history" element={<HistoryPage />} />
         <Route path="alerts" element={<AlertsPage />} />
         <Route

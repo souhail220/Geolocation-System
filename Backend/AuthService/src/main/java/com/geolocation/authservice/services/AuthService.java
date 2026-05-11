@@ -12,6 +12,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 @Service
 public class AuthService {
@@ -43,18 +45,25 @@ public class AuthService {
         return APIResponse.success(userDTO, "User is valid");
     }
 
-    public APIResponse<?> registerUser(RegisterUserDTO userDTO){
-        // Validate User
-        APIResponse<?> validateMessage = validateUser(userDTO);
-        if(!validateMessage.isSuccess()){
-            return validateMessage;
-        }
+    @Transactional
+    public APIResponse<?> registerUser(RegisterUserDTO userDTO, HttpServletResponse response){
+        try {
+            // Validate User
+            APIResponse<?> validateMessage = validateUser(userDTO);
+            if(!validateMessage.isSuccess()){
+                return validateMessage;
+            }
 
-        // Save User
-        User user = modelMapper.map(userDTO, User.class);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
-        return APIResponse.success(modelMapper.map(user, UserDTO.class));
+            // Save User
+            User user = modelMapper.map(userDTO, User.class);
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            userRepository.save(user);
+
+            return authenticate(user, new LoginCredentials(userDTO.getEmail(), userDTO.getPassword()), response);
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            throw new RuntimeException(e);
+        }
     }
 
     public APIResponse<?> loginUser(@Valid LoginCredentials loginCredentials, HttpServletResponse response) {
