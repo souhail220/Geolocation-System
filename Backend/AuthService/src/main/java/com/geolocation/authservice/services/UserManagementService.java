@@ -2,7 +2,7 @@ package com.geolocation.authservice.services;
 
 import com.geolocation.authservice.data.entities.User;
 import com.geolocation.authservice.data.models.APIResponse;
-import com.geolocation.authservice.data.models.UserDTO;
+import com.geolocation.authservice.data.models.dto.UserDTO;
 import com.geolocation.authservice.exceptions.ResourceNotFoundException;
 import com.geolocation.authservice.exceptions.ServiceException;
 import com.geolocation.authservice.repositories.UserRepository;

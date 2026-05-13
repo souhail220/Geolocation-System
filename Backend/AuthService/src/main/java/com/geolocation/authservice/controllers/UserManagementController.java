@@ -1,7 +1,7 @@
 package com.geolocation.authservice.controllers;
 
 import com.geolocation.authservice.data.models.APIResponse;
-import com.geolocation.authservice.data.models.UserDTO;
+import com.geolocation.authservice.data.models.dto.UserDTO;
 import com.geolocation.authservice.services.UserManagementService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;

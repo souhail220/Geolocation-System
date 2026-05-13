@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+
 @Configuration
 public class WebMvcConfig {
 
@@ -15,6 +18,10 @@ public class WebMvcConfig {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration()
                 .setMatchingStrategy(MatchingStrategies.STRICT);
+        modelMapper.addConverter(context -> {
+            OffsetDateTime source = context.getSource();
+            return source == null ? null : source.toLocalDateTime();
+        }, OffsetDateTime.class, LocalDateTime.class);
         return modelMapper;
     }
 

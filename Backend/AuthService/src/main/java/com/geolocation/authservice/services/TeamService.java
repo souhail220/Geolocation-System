@@ -1,7 +1,8 @@
 package com.geolocation.authservice.services;
 
 import com.geolocation.authservice.data.entities.Team;
-import com.geolocation.authservice.data.models.TeamDTO;
+import com.geolocation.authservice.data.models.dto.GeofenceDTO;
+import com.geolocation.authservice.data.models.dto.TeamDTO;
 import com.geolocation.authservice.repositories.TeamRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,19 @@ public class TeamService {
                 .bodyToFlux(TeamDTO.class)
                 .collectList()
                 .block();
+    }
+
+    public List<GeofenceDTO> getFences(){
+
+        List<GeofenceDTO> list = webClient
+                .get()
+                .uri("/geofences")
+                .retrieve()
+                .bodyToFlux(GeofenceDTO.class)
+                .collectList()
+                .block();
+
+        return list;
     }
 
     public List<Team> saveTeams(){

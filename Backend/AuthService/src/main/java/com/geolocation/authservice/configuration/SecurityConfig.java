@@ -44,7 +44,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize ->
                         authorize
                                 .requestMatchers("/api/auth/**").permitAll()
-                                .requestMatchers("/api/teams").permitAll()
+                                .requestMatchers("/api/simulators/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->

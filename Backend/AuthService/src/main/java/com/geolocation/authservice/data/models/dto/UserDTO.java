@@ -1,5 +1,6 @@
-package com.geolocation.authservice.data.models;
+package com.geolocation.authservice.data.models.dto;
 
+import com.geolocation.authservice.data.models.RoleName;
 import lombok.Data;
 
 @Data

@@ -3,6 +3,7 @@ package com.geolocation.authservice.services;
 import com.geolocation.authservice.data.entities.Team;
 import com.geolocation.authservice.data.entities.User;
 import com.geolocation.authservice.data.models.*;
+import com.geolocation.authservice.data.models.dto.UserDTO;
 import com.geolocation.authservice.repositories.TeamRepository;
 import com.geolocation.authservice.repositories.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
