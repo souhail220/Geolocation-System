@@ -58,9 +58,9 @@ Start the radio simulation:
 python -m app.main
 ```
 
-### 7. Run the Teams Endpoint
+### 7. Run the Teams and Geofences Endpoint
 
-Start the secondary teams endpoint on port 81:
+Start the secondary teams/geofences endpoint on port 81:
 
 ```bash
 python -m app.teams_main
@@ -70,6 +70,12 @@ Then read teams data from:
 
 ```text
 http://localhost:81/teams
+```
+
+Read geofence data from:
+
+```text
+http://localhost:81/geofences
 ```
 
 ## Features

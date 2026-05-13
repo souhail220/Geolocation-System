@@ -6,6 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
 
 from app.data.database import SessionLocal, TeamModel
+from app.data.geofences_server import get_geofences_data
 
 logger = logging.getLogger(__name__)
 
@@ -44,14 +45,21 @@ def get_teams_data():
 
 class TeamsRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path not in ("/", "/teams"):
-            self.send_error(404, "Not Found")
+        if self.path in ("/", "/teams"):
+            self._send_json(get_teams_data, "teams")
             return
 
+        if self.path == "/geofences":
+            self._send_json(get_geofences_data, "geofences")
+            return
+
+        self.send_error(404, "Not Found")
+
+    def _send_json(self, loader, label):
         try:
-            body = json.dumps(get_teams_data()).encode("utf-8")
+            body = json.dumps(loader()).encode("utf-8")
         except Exception:
-            logger.exception("Failed to load or serialize teams data.")
+            logger.exception("Failed to load or serialize %s data.", label)
             self.send_error(500, "Internal Server Error")
             return
 
@@ -62,9 +70,9 @@ class TeamsRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
         except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError) as e:
-            logger.debug("Client disconnected while sending teams response: %s", e)
+            logger.debug("Client disconnected while sending %s response: %s", label, e)
         except OSError as e:
-            logger.warning("Could not complete teams HTTP response: %s", e)
+            logger.warning("Could not complete %s HTTP response: %s", label, e)
 
     def log_message(self, format, *args):
         logger.debug("%s - %s", self.address_string(), format % args)
@@ -80,5 +88,9 @@ def run_teams_server(host, port):
         logger.exception("Could not bind teams HTTP server on %s:%s: %s", host, port, e)
         raise
 
-    logger.info("Teams HTTP server listening on http://%s:%s/teams", host, port)
+    logger.info(
+        "Teams/geofences HTTP server listening on http://%s:%s/teams and /geofences",
+        host,
+        port,
+    )
     server.serve_forever()
