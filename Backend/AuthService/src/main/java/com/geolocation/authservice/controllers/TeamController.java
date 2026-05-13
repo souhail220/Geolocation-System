@@ -2,7 +2,6 @@ package com.geolocation.authservice.controllers;
 
 import com.geolocation.authservice.data.entities.Geofences;
 import com.geolocation.authservice.data.entities.Team;
-import com.geolocation.authservice.data.models.dto.GeofenceDTO;
 import com.geolocation.authservice.services.TeamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +27,7 @@ public class TeamController {
     }
 
     @GetMapping("/geofences")
-    private List<GeofenceDTO> getFences(){
-        return teamService.getFences();
+    private List<Geofences> getFences(){
+        return teamService.saveGeofences();
     }
 }

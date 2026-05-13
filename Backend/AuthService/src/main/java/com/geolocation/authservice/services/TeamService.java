@@ -1,8 +1,10 @@
 package com.geolocation.authservice.services;
 
+import com.geolocation.authservice.data.entities.Geofences;
 import com.geolocation.authservice.data.entities.Team;
 import com.geolocation.authservice.data.models.dto.GeofenceDTO;
 import com.geolocation.authservice.data.models.dto.TeamDTO;
+import com.geolocation.authservice.repositories.GeofenceRepository;
 import com.geolocation.authservice.repositories.TeamRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +18,16 @@ public class TeamService {
 
     private final WebClient webClient;
     private final TeamRepository teamRepository;
+    private final GeofenceRepository geofenceRepository;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public TeamService(WebClient.Builder builder, TeamRepository teamRepository, ModelMapper modelMapper){
+    public TeamService(WebClient.Builder builder, TeamRepository teamRepository,
+                       GeofenceRepository geofenceRepository, ModelMapper modelMapper
+    ){
         this.webClient = builder.baseUrl("http://localhost:81").build();
         this.teamRepository = teamRepository;
+        this.geofenceRepository = geofenceRepository;
         this.modelMapper = modelMapper;
     }
 
@@ -36,17 +42,27 @@ public class TeamService {
                 .block();
     }
 
-    public List<GeofenceDTO> getFences(){
+    private List<GeofenceDTO> getFences(){
 
-        List<GeofenceDTO> list = webClient
+        return webClient
                 .get()
                 .uri("/geofences")
                 .retrieve()
                 .bodyToFlux(GeofenceDTO.class)
                 .collectList()
                 .block();
+    }
 
-        return list;
+    public List<Geofences> saveGeofences(){
+        try {
+            List<Geofences> geofencesList = getFences()
+                    .stream().map(geofenceDTO -> modelMapper.map(geofenceDTO, Geofences.class)).toList();
+
+            geofenceRepository.saveAll(geofencesList);
+            return geofencesList;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public List<Team> saveTeams(){
@@ -60,5 +76,4 @@ public class TeamService {
             throw new RuntimeException(e);
         }
     }
-
 }

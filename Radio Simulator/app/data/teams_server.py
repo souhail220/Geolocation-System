@@ -14,7 +14,9 @@ logger = logging.getLogger(__name__)
 def _serialize_datetime(value):
     if value is None:
         return None
-    return value.isoformat()
+    if isinstance(value, str):
+        return value.split(".", 1)[0]
+    return value.isoformat(timespec="seconds")
 
 
 def get_teams_data():

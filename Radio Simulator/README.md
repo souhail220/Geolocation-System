@@ -50,6 +50,12 @@ Run the database generation script to create tables and populate them with initi
 python -m scripts.generate_db
 ```
 
+To seed Tunisian geofence polygons after teams exist:
+
+```bash
+python -m scripts.seed_geofences
+```
+
 ### 6. Run the Simulator
 
 Start the radio simulation:
@@ -66,7 +72,7 @@ Start the secondary teams/geofences endpoint on port 81:
 python -m app.teams_main
 ```
 
-Then read teams data from:
+Read teams data from:
 
 ```text
 http://localhost:81/teams
@@ -76,6 +82,38 @@ Read geofence data from:
 
 ```text
 http://localhost:81/geofences
+```
+
+The teams endpoint returns JSON in this shape:
+
+```json
+{
+  "id": 1,
+  "name": "Team Example",
+  "description": "Example description",
+  "createdAt": "2026-05-13T15:32:01",
+  "radioCount": 250
+}
+```
+
+The geofences endpoint returns JSON in this shape:
+
+```json
+{
+  "id": "2fcfca46-f29f-4eb2-a21a-59067c89935e",
+  "name": "Tataouine Southern Desert Sector",
+  "geom": {
+    "points": [
+      { "x": 9.35, "y": 30.3 },
+      { "x": 10.65, "y": 30.3 },
+      { "x": 10.65, "y": 32.25 },
+      { "x": 9.35, "y": 32.25 },
+      { "x": 9.35, "y": 30.3 }
+    ]
+  },
+  "teamId": 3,
+  "createdAt": "2026-05-10T14:43:49+00:00"
+}
 ```
 
 ## Features
