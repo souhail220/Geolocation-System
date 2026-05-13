@@ -1,9 +1,14 @@
+import logging
 import random
 import time
-from shapely.geometry import Point
+
 from geopy.distance import geodesic
-from .config import SEND_INTERVAL_RANGE, BASE_LAT, BASE_LON, ROUTES_PER_TEAM, ZONES_PER_TEAM_RANGE
-from .zoneGenerator import generate_zone, generate_route_within_zone
+from shapely.geometry import Point
+
+from .config import BASE_LAT, BASE_LON, ROUTES_PER_TEAM, SEND_INTERVAL_RANGE, ZONES_PER_TEAM_RANGE
+from .zoneGenerator import generate_route_within_zone, generate_zone
+
+logger = logging.getLogger(__name__)
 
 
 class Radio:
@@ -49,8 +54,13 @@ class Radio:
 
         self.next_send_time = now + random.randint(*SEND_INTERVAL_RANGE)
 
+        route_len = len(self.route)
+        if route_len == 0:
+            logger.error("Radio %s has an empty route; skipping send.", self.id)
+            return None
+
         lat, lon = self.route[self.route_index]
-        self.route_index = (self.route_index + 1) % len(self.route)
+        self.route_index = (self.route_index + 1) % route_len
 
         # Battery drain
         self.battery -= random.uniform(0.1, 0.5)
@@ -110,6 +120,16 @@ class Team:
         for _ in range(ROUTES_PER_TEAM):
             zone = random.choice(self.zones)
             route = generate_route_within_zone(zone)
+            if not route:
+                logger.warning(
+                    "Empty route generated for team id=%s; injecting minimal in-zone path.",
+                    team_model.id,
+                )
+                minx, miny, maxx, maxy = zone.bounds
+                route = [
+                    (random.uniform(minx, maxx), random.uniform(miny, maxy)),
+                    (random.uniform(minx, maxx), random.uniform(miny, maxy)),
+                ]
             self.routes.append((route, zone))
 
         # Create radios from the provided database models

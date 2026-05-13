@@ -1,3 +1,8 @@
+import os
+
+# Logging (read by app entrypoints; logging_config also reads LOG_LEVEL from env)
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").strip()
+
 # Simulation scale
 ROUTES_PER_TEAM = 5
 ZONES_PER_TEAM_RANGE = (1, 3)

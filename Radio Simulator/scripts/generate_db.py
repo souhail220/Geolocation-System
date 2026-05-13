@@ -1,23 +1,31 @@
+import logging
 import os
-import shortuuid
 import random
+import sys
 from datetime import datetime, timezone
-from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, DateTime, ForeignKey
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+
+import shortuuid
 from dotenv import load_dotenv
 from faker import Faker
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, create_engine
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
-# Load environment variables from .env file
+from app.logging_config import configure_logging
+
 load_dotenv()
+configure_logging(os.getenv("LOG_LEVEL", "INFO"))
+
+logger = logging.getLogger(__name__)
 
 # Get Neon PostgreSQL connection string
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
+    logger.error("DATABASE_URL is not set; configure it in the environment or .env file.")
     raise ValueError("DATABASE_URL is not set in the .env file")
 
 # SQLAlchemy setup
 Base = declarative_base()
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 class Team(Base):
@@ -47,17 +55,15 @@ class Radio(Base):
 
 
 def generate_database(num_teams=5, radios_per_team=50):
-    print("Initializing Neon PostgreSQL Database...")
-    
-    # Create tables if they do not exist
+    logger.info("Initializing database schema (create_all if needed)...")
     Base.metadata.create_all(bind=engine)
-    print("Tables created or verified.")
+    logger.info("Tables created or verified.")
 
     db = SessionLocal()
     fake = Faker()
 
-    print(f"Generating {num_teams} teams with {radios_per_team} radios each...")
-    
+    logger.info("Generating %d teams with %d radios each...", num_teams, radios_per_team)
+
     try:
         for _ in range(num_teams):
             # 1. Create Team
@@ -85,13 +91,17 @@ def generate_database(num_teams=5, radios_per_team=50):
             db.add_all(radios)
             db.commit()
 
-        print("Successfully generated and saved fake data to Neon PostgreSQL!")
-    except Exception as e:
+        logger.info("Successfully generated and committed fake data.")
+    except Exception:
         db.rollback()
-        print(f"Error occurred: {e}")
+        logger.exception("Database generation failed; rolled back the current transaction.")
+        raise
     finally:
         db.close()
 
+
 if __name__ == "__main__":
-    # Feel free to change these numbers
-    generate_database(num_teams=20, radios_per_team=250)
+    try:
+        generate_database(num_teams=20, radios_per_team=250)
+    except Exception:
+        sys.exit(1)

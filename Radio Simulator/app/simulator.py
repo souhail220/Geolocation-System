@@ -1,9 +1,16 @@
+import logging
 import random
 import time
-from .models import Team
+
+from sqlalchemy.exc import SQLAlchemyError
+
 from .config import BASE_LAT, BASE_LON, LOOP_SLEEP, SERVER_HOST, SERVER_PORT
-from .server import start_server, global_state
 from .database import SessionLocal, TeamModel
+from .models import Team
+from .server import global_state, start_server
+
+logger = logging.getLogger(__name__)
+
 
 class Simulator:
     def __init__(self):
@@ -11,34 +18,59 @@ class Simulator:
 
         db = SessionLocal()
         try:
-            # Query all teams, and eagerly load the associated radios to prevent N+1 queries
-            db_teams = db.query(TeamModel).all()
+            try:
+                db_teams = db.query(TeamModel).all()
+            except SQLAlchemyError:
+                logger.exception("Database query failed while loading teams.")
+                raise
+
+            if not db_teams:
+                logger.warning("No teams found in the database; simulator will run with zero teams.")
+
             for db_team in db_teams:
-                team = Team(
-                    team_model=db_team,
-                    radio_models=db_team.radios,
-                    center_lat=BASE_LAT + random.uniform(-0.5, 0.5),
-                    center_lon=BASE_LON + random.uniform(-0.5, 0.5)
-                )
-                self.teams.append(team)
+                try:
+                    team = Team(
+                        team_model=db_team,
+                        radio_models=db_team.radios,
+                        center_lat=BASE_LAT + random.uniform(-0.5, 0.5),
+                        center_lon=BASE_LON + random.uniform(-0.5, 0.5),
+                    )
+                    self.teams.append(team)
+                except Exception:
+                    logger.exception(
+                        "Failed to build simulator state for team id=%s name=%r",
+                        getattr(db_team, "id", None),
+                        getattr(db_team, "name", None),
+                    )
+                    raise
+
+            total_radios = sum(len(t.radios) for t in self.teams)
+            logger.info(
+                "Loaded %d team(s) with %d radio(s) from the database.",
+                len(self.teams),
+                total_radios,
+            )
         finally:
             db.close()
 
     def run(self):
-        print("🚀 Radio Fleet Simulator Started")
-        print(f"Teams: {len(self.teams)}")
-        
-        # Start the local HTTP server in a background thread
+        logger.info("Radio fleet simulator started.")
         start_server(SERVER_HOST, SERVER_PORT)
-
-        print("Running...")
+        logger.info("Main simulation loop running (sleep=%ss between ticks).", LOOP_SLEEP)
 
         while True:
             for team in self.teams:
                 for radio in team.radios:
-                    payload = radio.move_and_send()
+                    try:
+                        payload = radio.move_and_send()
+                    except Exception:
+                        logger.exception(
+                            "Simulation step failed for radio_id=%s serial=%r",
+                            getattr(radio, "id", None),
+                            getattr(radio, "serial_number", None),
+                        )
+                        continue
                     if payload:
-                        # Update the centralized state for the server to serve
                         global_state[payload["radioId"]] = payload
 
             time.sleep(LOOP_SLEEP)

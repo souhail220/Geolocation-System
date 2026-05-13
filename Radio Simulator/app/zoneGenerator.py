@@ -1,6 +1,10 @@
+import logging
 import random
+
 import requests
 from shapely.geometry import Polygon
+
+logger = logging.getLogger(__name__)
 
 
 def generate_zone(center_lat, center_lon, size=0.02):
@@ -32,15 +36,29 @@ def generate_route_within_zone(zone, num_waypoints=3):
 
     try:
         response = requests.get(osrm_url, timeout=5)
+        response.raise_for_status()
         data = response.json()
-        
-        if data.get("code") == "Ok":
-            # Extract the coordinates from the GeoJSON Geometry
+    except requests.RequestException as e:
+        logger.warning("OSRM request failed: %s; using waypoint fallback.", e)
+        data = None
+    except ValueError as e:
+        logger.warning("OSRM response was not valid JSON: %s; using waypoint fallback.", e)
+        data = None
+
+    if data and data.get("code") == "Ok" and data.get("routes"):
+        try:
             route_coords = data["routes"][0]["geometry"]["coordinates"]
-            # Convert back from (lon, lat) to (lat, lon) for our simulator
-            return [(lat, lon) for lon, lat in route_coords]
-    except Exception as e:
-        print(f"⚠️ OSRM API failed: {e}. Falling back to straight lines.")
+        except (KeyError, IndexError, TypeError) as e:
+            logger.warning("Unexpected OSRM response shape: %s; using waypoint fallback.", e)
+        else:
+            if route_coords:
+                return [(lat, lon) for lon, lat in route_coords]
+            logger.warning("OSRM returned empty geometry; using waypoint fallback.")
+    elif data is not None:
+        logger.warning(
+            "OSRM did not return a usable route (code=%r); using waypoint fallback.",
+            data.get("code"),
+        )
     
     # Fallback to straight line logic if OSRM is unreachable
     return [
