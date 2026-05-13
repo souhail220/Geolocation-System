@@ -1,7 +1,9 @@
 package com.geolocation.authservice.services;
 
+import com.geolocation.authservice.data.entities.Team;
 import com.geolocation.authservice.data.entities.User;
 import com.geolocation.authservice.data.models.*;
+import com.geolocation.authservice.repositories.TeamRepository;
 import com.geolocation.authservice.repositories.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -15,18 +17,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.util.Optional;
+
 @Service
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final TeamRepository teamRepository;
     private final AuthenticationManager authenticationManager;
     private final ModelMapper modelMapper;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
     @Autowired
-    public AuthService(UserRepository userRepository, ModelMapper modelMapper, BCryptPasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService){
+    public AuthService(UserRepository userRepository, TeamRepository teamRepository, ModelMapper modelMapper,
+                       BCryptPasswordEncoder passwordEncoder, AuthenticationManager authenticationManager,
+                       JwtService jwtService
+    ){
         this.userRepository = userRepository;
+        this.teamRepository = teamRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
@@ -56,6 +65,11 @@ public class AuthService {
 
             // Save User
             User user = modelMapper.map(userDTO, User.class);
+            Optional<Team> team = teamRepository.findById(userDTO.getTeamId());
+            if(team.isEmpty()){
+                throw new RuntimeException("Team not found");
+            }
+            user.setTeam(team.get());
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(user);
 
@@ -88,7 +102,7 @@ public class AuthService {
             response.setHeader("Authorization", token);
             return APIResponse.success(modelMapper.map(user, UserDTO.class), "Successfully authenticated");
         }catch (Exception e){
-            return APIResponse.error("Hhhh");
+            return APIResponse.error(e.getMessage());
         }
     }
 }

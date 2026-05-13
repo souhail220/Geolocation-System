@@ -23,7 +23,10 @@ public class User {
 
     private String password;
     private String phoneNumber;
-    private int teamId;
+    
+    @ManyToOne
+    @JoinColumn(name = "team_id")
+    private Team team;
 
     @Enumerated(EnumType.STRING)
     private RoleName role;

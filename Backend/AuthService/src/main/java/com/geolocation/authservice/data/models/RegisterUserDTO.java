@@ -29,7 +29,7 @@ public class RegisterUserDTO {
     private String phoneNumber;
 
     @NotNull(message = "Team Id is required")
-    private int teamId;
+    private long teamId;
 
     @NotNull(message = "Role must not be null")
     private RoleName role;
