@@ -1,15 +1,12 @@
 import logging
+from app.configuration.config import LOG_LEVEL
+from app.configuration.logging_config import configure_logging
+from app.services.simulator import Simulator
 
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
-    from .config import LOG_LEVEL
-    from .logging_config import configure_logging
-
     configure_logging(LOG_LEVEL)
-
-    from .simulator import Simulator
-
     try:
         simulator = Simulator()
         simulator.run()

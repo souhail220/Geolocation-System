@@ -58,6 +58,20 @@ Start the radio simulation:
 python -m app.main
 ```
 
+### 7. Run the Teams Endpoint
+
+Start the secondary teams endpoint on port 81:
+
+```bash
+python -m app.teams_main
+```
+
+Then read teams data from:
+
+```text
+http://localhost:81/teams
+```
+
 ## Features
 
 - **Dynamic Movement**: Radios move within predefined zones and routes.

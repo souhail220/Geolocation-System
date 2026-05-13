@@ -4,10 +4,10 @@ import time
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from .config import BASE_LAT, BASE_LON, LOOP_SLEEP, SERVER_HOST, SERVER_PORT
-from .database import SessionLocal, TeamModel
-from .models import Team
-from .server import global_state, start_server
+from app.configuration.config import BASE_LAT, BASE_LON, LOOP_SLEEP, SERVER_HOST, SERVER_PORT
+from app.data.database import SessionLocal, TeamModel
+from app.data.models import Team
+from app.data.server import global_state, start_server
 
 logger = logging.getLogger(__name__)
 

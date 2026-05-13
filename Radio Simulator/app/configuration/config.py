@@ -14,6 +14,7 @@ BASE_LON = 10.760
 # Server Configuration
 SERVER_HOST = "localhost"
 SERVER_PORT = 80
+TEAMS_SERVER_PORT = 81
 
 # Timing
 LOOP_SLEEP = 1

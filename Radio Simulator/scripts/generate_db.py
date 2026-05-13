@@ -3,14 +3,12 @@ import os
 import random
 import sys
 from datetime import datetime, timezone
-
 import shortuuid
 from dotenv import load_dotenv
 from faker import Faker
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, create_engine
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
-
-from app.logging_config import configure_logging
+from app.configuration.logging_config import configure_logging
 
 load_dotenv()
 configure_logging(os.getenv("LOG_LEVEL", "INFO"))

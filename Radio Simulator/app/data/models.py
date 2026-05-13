@@ -5,8 +5,8 @@ import time
 from geopy.distance import geodesic
 from shapely.geometry import Point
 
-from .config import BASE_LAT, BASE_LON, ROUTES_PER_TEAM, SEND_INTERVAL_RANGE, ZONES_PER_TEAM_RANGE
-from .zoneGenerator import generate_route_within_zone, generate_zone
+from app.configuration.config import BASE_LAT, BASE_LON, ROUTES_PER_TEAM, SEND_INTERVAL_RANGE, ZONES_PER_TEAM_RANGE
+from app.services.zoneGenerator import generate_route_within_zone, generate_zone
 
 logger = logging.getLogger(__name__)
 
