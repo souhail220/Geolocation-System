@@ -56,6 +56,10 @@ To seed Tunisian geofence polygons after teams exist:
 python -m scripts.seed_geofences
 ```
 
+The geofence seed keeps exactly one geofence per existing team. If duplicate
+geofences already exist for a team, the script removes the older duplicates
+before inserting or updating the current seed data.
+
 ### 6. Run the Simulator
 
 Start the radio simulation:

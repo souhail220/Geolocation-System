@@ -16,22 +16,6 @@ def _serialize_datetime(value):
     return value.isoformat()
 
 
-def _to_spring_polygon(geojson_text):
-    geojson = json.loads(geojson_text)
-    rings = geojson.get("coordinates", [])
-    exterior_ring = rings[0] if rings else []
-
-    return {
-        "points": [
-            {
-                "x": point[0],
-                "y": point[1],
-            }
-            for point in exterior_ring
-        ]
-    }
-
-
 def get_geofences_data():
     db = SessionLocal()
     try:
@@ -54,7 +38,7 @@ def get_geofences_data():
             {
                 "id": row["id"],
                 "name": row["name"],
-                "geom": _to_spring_polygon(row["geom_geojson"]),
+                "geom": json.loads(row["geom_geojson"]),
                 "teamId": row["team_id"],
                 "createdAt": _serialize_datetime(row["created_at"]),
             }

@@ -193,6 +193,9 @@ def setup_schema(connection):
         )
     )
 
+    ensure_geofences_columns(connection)
+    delete_incomplete_geofences(connection)
+
     connection.execute(
         text("CREATE INDEX IF NOT EXISTS idx_geofences_geom ON geofences USING GIST(geom)")
     )
@@ -224,7 +227,35 @@ def setup_schema(connection):
             ADD CONSTRAINT name_unique_per_team UNIQUE (team_id, name)
             """,
         ),
+        (
+            "geofence_unique_per_team",
+            """
+            ALTER TABLE geofences
+            ADD CONSTRAINT geofence_unique_per_team UNIQUE (team_id)
+            """,
+        ),
     ]
+
+    connection.execute(
+        text(
+            """
+            DELETE FROM geofences
+            WHERE id IN (
+              SELECT id
+              FROM (
+                SELECT
+                  id,
+                  row_number() OVER (
+                    PARTITION BY team_id
+                    ORDER BY created_at DESC, name ASC
+                  ) AS duplicate_rank
+                FROM geofences
+              ) ranked_geofences
+              WHERE duplicate_rank > 1
+            )
+            """
+        )
+    )
 
     for constraint_name, ddl in constraints:
         exists = connection.execute(
@@ -245,11 +276,60 @@ def setup_schema(connection):
             connection.execute(text(ddl))
 
 
-def fetch_seed_team_ids(connection):
-    teams = connection.execute(text("SELECT id FROM teams ORDER BY id LIMIT 3")).scalars().all()
+def geofences_columns(connection):
+    rows = connection.execute(
+        text(
+            """
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'geofences'
+            """
+        )
+    ).scalars().all()
+    return set(rows)
 
-    if len(teams) < 3:
-        raise RuntimeError("Seeding geofences requires at least 3 existing teams.")
+
+def ensure_geofences_columns(connection):
+    columns = geofences_columns(connection)
+
+    if "name" not in columns:
+        connection.execute(text("ALTER TABLE geofences ADD COLUMN name VARCHAR(100)"))
+
+    if "geom" not in columns:
+        connection.execute(
+            text("ALTER TABLE geofences ADD COLUMN geom geography(Polygon, 4326)")
+        )
+
+    if "team_id" not in columns:
+        connection.execute(
+            text("ALTER TABLE geofences ADD COLUMN team_id INTEGER REFERENCES teams(id) ON DELETE CASCADE")
+        )
+
+    if "created_at" not in columns:
+        connection.execute(
+            text("ALTER TABLE geofences ADD COLUMN created_at TIMESTAMPTZ NOT NULL DEFAULT now()")
+        )
+
+
+def delete_incomplete_geofences(connection):
+    connection.execute(
+        text(
+            """
+            DELETE FROM geofences
+            WHERE name IS NULL
+               OR geom IS NULL
+               OR team_id IS NULL
+            """
+        )
+    )
+
+
+def fetch_seed_team_ids(connection):
+    teams = connection.execute(text("SELECT id FROM teams ORDER BY id")).scalars().all()
+
+    if not teams:
+        raise RuntimeError("Seeding geofences requires at least 1 existing team.")
 
     return teams
 
@@ -264,7 +344,8 @@ def seed_geofences(connection, teams):
           :team_id,
           :created_at
         )
-        ON CONFLICT (team_id, name) DO UPDATE SET
+        ON CONFLICT (team_id) DO UPDATE SET
+          name = EXCLUDED.name,
           geom = EXCLUDED.geom,
           created_at = EXCLUDED.created_at
         """
@@ -274,10 +355,11 @@ def seed_geofences(connection, teams):
         {
             "name": geofence["name"],
             "wkt": geofence["wkt"],
-            "team_id": teams[geofence["team_index"]],
+            "team_id": team_id,
             "created_at": geofence["created_at"],
         }
-        for geofence in GEOFENCES
+        for index, team_id in enumerate(teams)
+        for geofence in [GEOFENCES[index % len(GEOFENCES)]]
     ]
 
     connection.execute(insert_statement, rows)
