@@ -5,13 +5,12 @@ import lombok.Data;
 import java.math.BigDecimal;
 import org.locationtech.jts.geom.Point;
 import java.time.OffsetDateTime;
-import java.util.UUID;
 
 @Entity
 @Data
 public class CurrentLocation {
     @Id
-    private UUID id;
+    private String id;
 
     @MapsId
     @OneToOne(fetch = FetchType.LAZY)
@@ -30,9 +29,7 @@ public class CurrentLocation {
     @Column(nullable = false)
     private OffsetDateTime timestamp;
 
-    @Column(name = "battery_level", precision = 5, scale = 2)
+    @Column(precision = 5, scale = 2)
     private BigDecimal batteryLevel;
-
-    @Column(name = "signal_strength")
     private Integer signalStrength;
 }

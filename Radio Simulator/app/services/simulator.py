@@ -71,6 +71,6 @@ class Simulator:
                         )
                         continue
                     if payload:
-                        global_state[payload["radioId"]] = payload
+                        global_state[payload["id"]] = payload
 
             time.sleep(LOOP_SLEEP)

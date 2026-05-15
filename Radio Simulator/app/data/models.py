@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class Radio:
-    def __init__(self, radio_id, serial_number, name, team_name, is_stolen, route, zone):
+    def __init__(self, radio_id, serial_number, name, team_id, is_stolen, route, zone):
         self.id = radio_id
         self.serial_number = serial_number
         self.name = name
-        self.team = team_name
+        self.team = team_id
         self.is_stolen = is_stolen
         self.route = route
         self.zone = zone
@@ -82,7 +82,7 @@ class Radio:
         self.signal_strength = self._calculate_signal_strength(lat, lon)
 
         payload = {
-            "radioId": self.id,
+            "id": self.id,
             "serialNumber": self.serial_number,
             "name": self.name,
             "team": self.team,
@@ -139,7 +139,7 @@ class Team:
                 radio_id=rm.id,
                 serial_number=rm.serial_number,
                 name=rm.name,
-                team_name=self.name,
+                team_id=self.id,
                 is_stolen=rm.is_stolen,
                 route=route,
                 zone=zone
