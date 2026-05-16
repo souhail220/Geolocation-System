@@ -46,16 +46,23 @@ GEOFENCE_VIOLATION_PROBABILITY = float(os.getenv("GEOFENCE_VIOLATION_PROBABILITY
 GEOFENCE_VIOLATION_OFFSET_RANGE = (0.02, 0.05)
 
 # Radio state probabilities
-RADIO_STOLEN_PROBABILITY = float(os.getenv("RADIO_STOLEN_PROBABILITY", "0.01"))
-SIGNAL_DROP_PROBABILITY = float(os.getenv("SIGNAL_DROP_PROBABILITY", "0.001"))
+RADIO_STOLEN_PROBABILITY = float(os.getenv("RADIO_STOLEN_PROBABILITY", "0.001"))
+SIGNAL_DROP_PROBABILITY = float(os.getenv("SIGNAL_DROP_PROBABILITY", "0.00005"))
 BATTERY_INITIAL_RANGE = (
-    float(os.getenv("BATTERY_INITIAL_MIN", "80")),
+    float(os.getenv("BATTERY_INITIAL_MIN", "95")),
     float(os.getenv("BATTERY_INITIAL_MAX", "100")),
 )
 BATTERY_DRAIN_RANGE = (
-    float(os.getenv("BATTERY_DRAIN_MIN", "0.02")),
-    float(os.getenv("BATTERY_DRAIN_MAX", "0.08")),
+    float(os.getenv("BATTERY_DRAIN_MIN", "0.001")),
+    float(os.getenv("BATTERY_DRAIN_MAX", "0.005")),
 )
+SIGNAL_BASE_DBM = float(os.getenv("SIGNAL_BASE_DBM", "-50"))
+SIGNAL_ATTENUATION_DB_PER_KM = float(os.getenv("SIGNAL_ATTENUATION_DB_PER_KM", "0.04"))
+SIGNAL_NOISE_RANGE = (
+    float(os.getenv("SIGNAL_NOISE_MIN", "-1")),
+    float(os.getenv("SIGNAL_NOISE_MAX", "1")),
+)
+SIGNAL_LOST_THRESHOLD_DBM = float(os.getenv("SIGNAL_LOST_THRESHOLD_DBM", "-105"))
 
 # Server Configuration
 SERVER_HOST = "localhost"
@@ -64,7 +71,7 @@ TEAMS_SERVER_PORT = 81
 
 # Timing
 LOOP_SLEEP = 1
-SEND_INTERVAL_RANGE = (5, 15)
+SEND_INTERVAL_RANGE = (60, 60)
 SIMULATION_STATUS_LOG_INTERVAL_SECONDS = int(
     os.getenv("SIMULATION_STATUS_LOG_INTERVAL_SECONDS", "10")
 )

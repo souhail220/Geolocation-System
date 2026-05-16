@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 
+from app.configuration.config import SIGNAL_LOST_THRESHOLD_DBM
+
 
 def matching_event_types(radio):
     events = []
@@ -10,7 +12,7 @@ def matching_event_types(radio):
     if radio["battery"] < 10 and radio["active"] is True:
         events.append("battery_critical")
 
-    if radio["signal_strength"] < -90:
+    if radio["signal_strength"] < SIGNAL_LOST_THRESHOLD_DBM:
         events.append("signal_lost")
 
     if radio["outsideZone"] is True:

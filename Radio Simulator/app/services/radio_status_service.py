@@ -21,7 +21,13 @@ def parse_since(value):
 
 def _isoformat(value):
     if isinstance(value, datetime):
-        return value.astimezone(timezone.utc).isoformat()
+        return (
+            value
+            .astimezone(timezone.utc)
+            .replace(microsecond=0)
+            .isoformat()
+            .replace("+00:00", "Z")
+        )
     return value
 
 
@@ -39,7 +45,7 @@ def radio_status_since(since_value, database_url=None):
     if changed:
         next_since = changed[-1]["changed_at"]
     else:
-        next_since = datetime.now(timezone.utc).isoformat()
+        next_since = _isoformat(datetime.now(timezone.utc))
 
     return {
         "next_since": next_since,

@@ -152,7 +152,7 @@ The radio status endpoint returns JSON in this shape:
 
 ```json
 {
-  "next_since": "2026-05-16T15:40:30+00:00",
+  "next_since": "2026-05-16T15:40:30Z",
   "count": 1,
   "changed": [
     {
@@ -167,7 +167,7 @@ The radio status endpoint returns JSON in this shape:
       "active": true,
       "stolen": false,
       "outsideZone": false,
-      "changed_at": "2026-05-16T15:40:30+00:00"
+      "changed_at": "2026-05-16T15:40:30Z"
     }
   ]
 }

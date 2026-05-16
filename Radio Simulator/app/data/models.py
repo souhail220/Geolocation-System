@@ -14,7 +14,10 @@ from app.configuration.config import (
     GEOFENCE_VIOLATION_PROBABILITY,
     ROUTES_PER_TEAM,
     SEND_INTERVAL_RANGE,
+    SIGNAL_ATTENUATION_DB_PER_KM,
+    SIGNAL_BASE_DBM,
     SIGNAL_DROP_PROBABILITY,
+    SIGNAL_NOISE_RANGE,
 )
 from app.services.zoneGenerator import generate_route_within_zone, random_point_within_zone
 
@@ -41,12 +44,10 @@ class Radio:
     def _calculate_signal_strength(self, lat, lon):
         dist_km = geodesic((lat, lon), (BASE_LAT, BASE_LON)).kilometers
         
-        # Simple simulated attenuation curve
-        # Base signal is strong (-50 dBm), attenuates by roughly 2.5 dBm per km
-        # Random noise +/- 3 dBm
-        base_signal = -50
-        attenuation = dist_km * 2.5
-        noise = random.uniform(-3, 3)
+        # Simple simulated attenuation curve.
+        base_signal = SIGNAL_BASE_DBM
+        attenuation = dist_km * SIGNAL_ATTENUATION_DB_PER_KM
+        noise = random.uniform(*SIGNAL_NOISE_RANGE)
         
         strength = base_signal - attenuation + noise
         
