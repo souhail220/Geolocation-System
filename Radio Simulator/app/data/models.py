@@ -8,10 +8,13 @@ from shapely.geometry import Point
 from app.configuration.config import (
     BASE_LAT,
     BASE_LON,
+    BATTERY_DRAIN_RANGE,
+    BATTERY_INITIAL_RANGE,
     GEOFENCE_VIOLATION_OFFSET_RANGE,
     GEOFENCE_VIOLATION_PROBABILITY,
     ROUTES_PER_TEAM,
     SEND_INTERVAL_RANGE,
+    SIGNAL_DROP_PROBABILITY,
 )
 from app.services.zoneGenerator import generate_route_within_zone, random_point_within_zone
 
@@ -29,7 +32,7 @@ class Radio:
         self.zone = zone
         self.route_index = 0
 
-        self.battery = random.uniform(60, 100)
+        self.battery = random.uniform(*BATTERY_INITIAL_RANGE)
         self.active = True
         self.signal_strength = 0 # Will be dynamically calculated
 
@@ -70,12 +73,12 @@ class Radio:
         self.route_index = (self.route_index + 1) % route_len
 
         # Battery drain
-        self.battery -= random.uniform(0.1, 0.5)
+        self.battery -= random.uniform(*BATTERY_DRAIN_RANGE)
         if self.battery <= 0:
             self.active = False
 
         # Random signal drop
-        if random.random() < 0.01:
+        if random.random() < SIGNAL_DROP_PROBABILITY:
             self.active = False
 
         # Random geofence violation

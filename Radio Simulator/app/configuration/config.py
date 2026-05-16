@@ -45,6 +45,18 @@ OSRM_TIMEOUT_SECONDS = float(os.getenv("OSRM_TIMEOUT_SECONDS", "5"))
 GEOFENCE_VIOLATION_PROBABILITY = float(os.getenv("GEOFENCE_VIOLATION_PROBABILITY", "0.02"))
 GEOFENCE_VIOLATION_OFFSET_RANGE = (0.02, 0.05)
 
+# Radio state probabilities
+RADIO_STOLEN_PROBABILITY = float(os.getenv("RADIO_STOLEN_PROBABILITY", "0.01"))
+SIGNAL_DROP_PROBABILITY = float(os.getenv("SIGNAL_DROP_PROBABILITY", "0.001"))
+BATTERY_INITIAL_RANGE = (
+    float(os.getenv("BATTERY_INITIAL_MIN", "80")),
+    float(os.getenv("BATTERY_INITIAL_MAX", "100")),
+)
+BATTERY_DRAIN_RANGE = (
+    float(os.getenv("BATTERY_DRAIN_MIN", "0.02")),
+    float(os.getenv("BATTERY_DRAIN_MAX", "0.08")),
+)
+
 # Server Configuration
 SERVER_HOST = "localhost"
 SERVER_PORT = 80

@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from faker import Faker
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, create_engine
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from app.configuration.config import RADIO_STOLEN_PROBABILITY
 from app.configuration.logging_config import configure_logging
 from scripts.schema import apply_schema as apply_extension_schema
 
@@ -82,7 +83,7 @@ def generate_database(num_teams=5, radios_per_team=50):
                     id=shortuuid.uuid(),
                     serial_number=fake.unique.bothify(text='RAD-####-????-####', letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ'),
                     name=fake.word().capitalize() + " Tracker",
-                    is_stolen=random.random() < 0.05,  # 5% chance of being stolen
+                    is_stolen=random.random() < RADIO_STOLEN_PROBABILITY,
                     team_id=new_team.id
                 )
                 radios.append(radio)
