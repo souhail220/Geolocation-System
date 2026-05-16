@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
 
 from app.data.database import SessionLocal, TeamModel
-from app.data.geofences_server import get_geofences_data
+from app.server.geofences_server import get_geofences_data
 
 logger = logging.getLogger(__name__)
 

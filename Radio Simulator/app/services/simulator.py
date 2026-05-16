@@ -7,8 +7,9 @@ from sqlalchemy.orm import selectinload
 from app.configuration.config import (LOOP_SLEEP, SERVER_HOST, SERVER_PORT, SIMULATION_STATUS_LOG_INTERVAL_SECONDS, USE_TUNISIA_GEOFENCE_FALLBACK,)
 from app.data.database import SessionLocal, TeamModel
 from app.data.models import Team
-from app.data.server import global_state, start_server
+from app.server.server import global_state, global_state_lock, start_server
 from app.services.geofence_service import (MissingGeofenceError, add_tunisia_fallback_geofences, load_team_geofence_map, require_team_geofence)
+from app.services.poller import start_poller
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +110,8 @@ class Simulator:
     def run(self):
         logger.info("Radio fleet simulator started.")
         start_server(SERVER_HOST, SERVER_PORT)
+        start_poller(global_state, global_state_lock)
+        logger.info("Radio change poller started.")
         logger.info("Main simulation loop running (sleep=%ss between ticks).", LOOP_SLEEP)
         logger.info(
             "Simulation status will be logged every %s second(s).",
@@ -133,7 +136,8 @@ class Simulator:
                         )
                         continue
                     if payload:
-                        global_state[payload["id"]] = payload
+                        with global_state_lock:
+                            global_state[payload["id"]] = payload
                         sent_payloads += 1
 
             now = time.time()
@@ -148,8 +152,12 @@ class Simulator:
                     total_radios,
                     active_radios,
                     sent_payloads,
-                    len(global_state),
+                    self._state_size(),
                 )
                 next_status_log_time = now + SIMULATION_STATUS_LOG_INTERVAL_SECONDS
 
             time.sleep(LOOP_SLEEP)
+
+    def _state_size(self):
+        with global_state_lock:
+            return len(global_state)

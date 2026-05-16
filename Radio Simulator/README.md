@@ -5,7 +5,7 @@ A Python-based simulator for tracking a fleet of radios with dynamic movement, b
 ## Prerequisites
 
 - Python 3.14+
-- PostgreSQL database (e.g., Neon.tech)
+- PostgreSQL database with PostGIS enabled (e.g., Neon.tech)
 
 ## Setup Instructions
 
@@ -98,6 +98,21 @@ Read geofence data from:
 http://localhost:81/geofences
 ```
 
+The main simulator HTTP server on port 80 returns the latest in-memory radio
+state:
+
+```text
+http://localhost:80
+```
+
+It also exposes persisted radio changes from `radio_change_log`:
+
+```text
+http://localhost:80/radios/status?since=2026-05-16T15:00:00Z
+```
+
+The `since` query parameter is required and must be an ISO 8601 timestamp.
+
 The teams endpoint returns JSON in this shape:
 
 ```json
@@ -133,9 +148,76 @@ The geofences endpoint returns JSON in this shape:
 }
 ```
 
+The radio status endpoint returns JSON in this shape:
+
+```json
+{
+  "next_since": "2026-05-16T15:40:30+00:00",
+  "count": 1,
+  "changed": [
+    {
+      "radio_id": "R-042",
+      "serial_number": "RAD-1234-ABCD-5678",
+      "name": "Alpha Tracker",
+      "team_id": 3,
+      "battery": 82.5,
+      "signal_strength": -74.0,
+      "lat": 34.7401,
+      "lng": 10.7601,
+      "active": true,
+      "stolen": false,
+      "outsideZone": false,
+      "changed_at": "2026-05-16T15:40:30+00:00"
+    }
+  ]
+}
+```
+
+## Poller and Webhooks
+
+The poller service reads the shared in-memory radio state every
+`POLLER_INTERVAL_SECONDS` seconds, hashes `battery`, `signal_strength`,
+`latitude`, and `longitude`, and writes only changed radios to:
+
+- `radio_snapshots`
+- `radio_change_log`
+
+It logs each cycle like:
+
+```text
+[poller] 47 / 5000 changed
+```
+
+The poller is exposed as a reusable service:
+
+```python
+from app.services.poller import start_poller
+
+start_poller(global_state, global_state_lock)
+```
+
+Webhook registrations are stored in the `webhooks` table:
+
+```sql
+INSERT INTO webhooks (url, event_type)
+VALUES ('https://example.com/webhook', 'geo_breach');
+```
+
+Supported webhook event types:
+
+- `radio_inactive`
+- `battery_critical`
+- `signal_lost`
+- `geo_breach`
+- `radio_stolen`
+
+Webhook calls are dispatched concurrently and retried with exponential backoff.
+
 ## Features
 
 - **Dynamic Movement**: Radios move within team geofences loaded from PostGIS.
 - **Battery Simulation**: Realistic battery drain over time.
 - **Signal Strength**: Dynamically calculated based on distance from base station.
 - **Geofencing**: Detection of radios moving outside their assigned zones.
+- **Change Polling**: Stores only changed radio snapshots and exposes status deltas.
+- **Webhook Dispatching**: Sends event notifications for inactive radios, critical batteries, signal loss, geofence breaches, and stolen radios.

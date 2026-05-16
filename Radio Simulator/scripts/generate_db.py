@@ -9,6 +9,7 @@ from faker import Faker
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, create_engine
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from app.configuration.logging_config import configure_logging
+from scripts.schema import apply_schema as apply_extension_schema
 
 load_dotenv()
 configure_logging(os.getenv("LOG_LEVEL", "INFO"))
@@ -56,6 +57,7 @@ def generate_database(num_teams=5, radios_per_team=50):
     logger.info("Initializing database schema (create_all if needed)...")
     Base.metadata.create_all(bind=engine)
     logger.info("Tables created or verified.")
+    apply_extension_schema(engine)
 
     db = SessionLocal()
     fake = Faker()

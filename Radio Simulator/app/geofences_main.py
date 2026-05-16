@@ -2,7 +2,7 @@ import logging
 
 from app.configuration.config import LOG_LEVEL, SERVER_HOST, TEAMS_SERVER_PORT
 from app.configuration.logging_config import configure_logging
-from app.data.teams_server import run_teams_server
+from app.server.teams_server import run_teams_server
 
 logger = logging.getLogger(__name__)
 
