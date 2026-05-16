@@ -5,8 +5,15 @@ import time
 from geopy.distance import geodesic
 from shapely.geometry import Point
 
-from app.configuration.config import BASE_LAT, BASE_LON, ROUTES_PER_TEAM, SEND_INTERVAL_RANGE, ZONES_PER_TEAM_RANGE
-from app.services.zoneGenerator import generate_route_within_zone, generate_zone
+from app.configuration.config import (
+    BASE_LAT,
+    BASE_LON,
+    GEOFENCE_VIOLATION_OFFSET_RANGE,
+    GEOFENCE_VIOLATION_PROBABILITY,
+    ROUTES_PER_TEAM,
+    SEND_INTERVAL_RANGE,
+)
+from app.services.zoneGenerator import generate_route_within_zone, random_point_within_zone
 
 logger = logging.getLogger(__name__)
 
@@ -72,11 +79,11 @@ class Radio:
             self.active = False
 
         # Random geofence violation
-        if random.random() < 0.02:
-            lat += random.uniform(0.02, 0.05)
-            lon += random.uniform(0.02, 0.05)
+        if random.random() < GEOFENCE_VIOLATION_PROBABILITY:
+            lat += random.uniform(*GEOFENCE_VIOLATION_OFFSET_RANGE)
+            lon += random.uniform(*GEOFENCE_VIOLATION_OFFSET_RANGE)
 
-        outside_zone = not self.zone.contains(Point(lat, lon))
+        outside_zone = not self.zone.covers(Point(lon, lat))
 
         # Dynamic Signal Attenuation based on distance
         self.signal_strength = self._calculate_signal_strength(lat, lon)
@@ -98,37 +105,29 @@ class Radio:
 
         return payload
 
+
 class Team:
-    def __init__(self, team_model, radio_models, center_lat, center_lon):
+    def __init__(self, team_model, radio_models, geofence):
         self.id = team_model.id
         self.name = team_model.name
         self.description = team_model.description
-        self.zones = []
+        self.geofence = geofence
+        self.zones = [geofence.geometry]
         self.routes = []
         self.radios = []
 
-        # Create zones
-        num_zones = random.randint(*ZONES_PER_TEAM_RANGE)
-        for _ in range(num_zones):
-            zone = generate_zone(
-                center_lat + random.uniform(-0.1, 0.1),
-                center_lon + random.uniform(-0.1, 0.1)
-            )
-            self.zones.append(zone)
-
-        # Create routes
+        # Create routes from the team's database geofence geometry.
+        zone = geofence.geometry
         for _ in range(ROUTES_PER_TEAM):
-            zone = random.choice(self.zones)
             route = generate_route_within_zone(zone)
             if not route:
                 logger.warning(
                     "Empty route generated for team id=%s; injecting minimal in-zone path.",
                     team_model.id,
                 )
-                minx, miny, maxx, maxy = zone.bounds
                 route = [
-                    (random.uniform(minx, maxx), random.uniform(miny, maxy)),
-                    (random.uniform(minx, maxx), random.uniform(miny, maxy)),
+                    random_point_within_zone(zone),
+                    random_point_within_zone(zone),
                 ]
             self.routes.append((route, zone))
 
@@ -144,4 +143,4 @@ class Team:
                 route=route,
                 zone=zone
             )
-            self.radios.append(radio)        
+            self.radios.append(radio)

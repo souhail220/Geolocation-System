@@ -2,10 +2,10 @@ import json
 import logging
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.data.database import SessionLocal
+from app.services.geofence_service import load_geofence_records
 
 logger = logging.getLogger(__name__)
 
@@ -19,30 +19,17 @@ def _serialize_datetime(value):
 def get_geofences_data():
     db = SessionLocal()
     try:
-        rows = db.execute(
-            text(
-                """
-                SELECT
-                  id::text AS id,
-                  name,
-                  ST_AsGeoJSON(geom::geometry) AS geom_geojson,
-                  team_id,
-                  created_at
-                FROM geofences
-                ORDER BY created_at DESC, name ASC
-                """
-            )
-        ).mappings().all()
+        records = load_geofence_records(db)
 
         return [
             {
-                "id": row["id"],
-                "name": row["name"],
-                "geom": json.loads(row["geom_geojson"]),
-                "teamId": row["team_id"],
-                "createdAt": _serialize_datetime(row["created_at"]),
+                "id": record.id,
+                "name": record.name,
+                "geom": record.geom_geojson,
+                "teamId": record.team_id,
+                "createdAt": _serialize_datetime(record.created_at),
             }
-            for row in rows
+            for record in records
         ]
     except SQLAlchemyError:
         logger.exception("Database query failed while loading geofences.")

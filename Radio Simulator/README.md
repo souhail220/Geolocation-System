@@ -68,6 +68,16 @@ Start the radio simulation:
 python -m app.main
 ```
 
+The simulator now uses `geofences.geom` as the movement area for each team.
+Run `python -m scripts.seed_geofences` after creating teams to give every team
+its own operational area. If a team has no geofence row, the simulator uses a
+Tunisia-wide fallback geofence by default. To make missing geofences a startup
+error instead, set `USE_TUNISIA_GEOFENCE_FALLBACK=false`.
+
+While running, the simulator logs startup, database loading, route preparation,
+and periodic simulation status. Set `SIMULATION_STATUS_LOG_INTERVAL_SECONDS` to
+change how often the simulation heartbeat is printed.
+
 ### 7. Run the Teams and Geofences Endpoint
 
 Start the secondary teams/geofences endpoint on port 81:
@@ -107,12 +117,15 @@ The geofences endpoint returns JSON in this shape:
   "id": "2fcfca46-f29f-4eb2-a21a-59067c89935e",
   "name": "Tataouine Southern Desert Sector",
   "geom": {
-    "points": [
-      { "x": 9.35, "y": 30.3 },
-      { "x": 10.65, "y": 30.3 },
-      { "x": 10.65, "y": 32.25 },
-      { "x": 9.35, "y": 32.25 },
-      { "x": 9.35, "y": 30.3 }
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [9.35, 30.3],
+        [10.65, 30.3],
+        [10.65, 32.25],
+        [9.35, 32.25],
+        [9.35, 30.3]
+      ]
     ]
   },
   "teamId": 3,
@@ -122,7 +135,7 @@ The geofences endpoint returns JSON in this shape:
 
 ## Features
 
-- **Dynamic Movement**: Radios move within predefined zones and routes.
+- **Dynamic Movement**: Radios move within team geofences loaded from PostGIS.
 - **Battery Simulation**: Realistic battery drain over time.
 - **Signal Strength**: Dynamically calculated based on distance from base station.
 - **Geofencing**: Detection of radios moving outside their assigned zones.

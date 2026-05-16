@@ -8,7 +8,10 @@ logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     configure_logging(LOG_LEVEL)
     try:
+        logger.info("Starting Radio Fleet Simulator application (log_level=%s).", LOG_LEVEL)
+        logger.info("Creating simulator state from database and geofences.")
         simulator = Simulator()
+        logger.info("Simulator state is ready; starting HTTP server and simulation loop.")
         simulator.run()
     except KeyboardInterrupt:
         logger.info("Simulator stopped by user (KeyboardInterrupt).")

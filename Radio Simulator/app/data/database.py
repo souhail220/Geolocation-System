@@ -20,9 +20,12 @@ engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Models must perfectly match the ones used in `scripts/generate_db.py`
+# Team/radio models match `scripts/generate_db.py`; geofences match
+# `scripts.seed_geofences.py`.
 from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import relationship
+
 
 class TeamModel(Base):
     __tablename__ = "teams"
@@ -33,6 +36,7 @@ class TeamModel(Base):
     created_at = Column(DateTime)
 
     radios = relationship("RadioModel", back_populates="team")
+    geofences = relationship("GeofenceModel", back_populates="team")
 
 
 class RadioModel(Base):
@@ -46,6 +50,20 @@ class RadioModel(Base):
     team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
 
     team = relationship("TeamModel", back_populates="radios")
+
+
+class GeofenceModel(Base):
+    __tablename__ = "geofences"
+
+    id = Column(PG_UUID(as_uuid=False), primary_key=True)
+    name = Column(String(100), nullable=False)
+    team_id = Column(Integer, ForeignKey("teams.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime)
+
+    # The PostGIS `geom geography(Polygon, 4326)` column is intentionally read
+    # through ST_AsGeoJSON in app.services.geofence_service.
+    team = relationship("TeamModel", back_populates="geofences")
+
 
 def get_db():
     db = SessionLocal()
