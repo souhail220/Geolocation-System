@@ -4,22 +4,11 @@ import time
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
 
-from app.configuration.config import (
-    LOOP_SLEEP,
-    SERVER_HOST,
-    SERVER_PORT,
-    SIMULATION_STATUS_LOG_INTERVAL_SECONDS,
-    USE_TUNISIA_GEOFENCE_FALLBACK,
-)
+from app.configuration.config import (LOOP_SLEEP, SERVER_HOST, SERVER_PORT, SIMULATION_STATUS_LOG_INTERVAL_SECONDS, USE_TUNISIA_GEOFENCE_FALLBACK,)
 from app.data.database import SessionLocal, TeamModel
 from app.data.models import Team
 from app.data.server import global_state, start_server
-from app.services.geofence_service import (
-    MissingGeofenceError,
-    add_tunisia_fallback_geofences,
-    load_team_geofence_map,
-    require_team_geofence,
-)
+from app.services.geofence_service import (MissingGeofenceError, add_tunisia_fallback_geofences, load_team_geofence_map, require_team_geofence)
 
 logger = logging.getLogger(__name__)
 
@@ -136,11 +125,11 @@ class Simulator:
                 for radio in team.radios:
                     try:
                         payload = radio.move_and_send()
-                    except Exception:
-                        logger.exception(
-                            "Simulation step failed for radio_id=%s serial=%r",
+                    except (ValueError, ConnectionError, TimeoutError) as ex:
+                        logger.exception("Simulation step failed for radio_id=%s serial=%r error=%s",
                             getattr(radio, "id", None),
                             getattr(radio, "serial_number", None),
+                            ex,
                         )
                         continue
                     if payload:
