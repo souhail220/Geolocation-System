@@ -3,7 +3,7 @@ import threading
 import time
 
 from app.configuration.poller_config import load_poller_config
-from app.repository.poller_repository import persist_changed_radios
+from app.repository.poller_repository import cleanup_old_change_logs, persist_changed_radios
 from app.services.poller_payload import snapshot_state
 from app.services.webhook_dispatcher import dispatch_events
 
@@ -20,6 +20,12 @@ def poll_once(shared_state, state_lock, database_url=None, config=None):
 
     changed_radios = persist_changed_radios(config.database_url, radios)
     dispatch_events(changed_radios)
+    deleted_logs = cleanup_old_change_logs(
+        config.database_url,
+        config.change_log_retention_hours,
+    )
+    if deleted_logs:
+        logger.info("[poller] cleaned %d old radio_change_log rows", deleted_logs)
 
     logger.info("[poller] %d / %d changed", len(changed_radios), len(radios))
     return len(changed_radios)

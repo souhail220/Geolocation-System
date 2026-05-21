@@ -50,5 +50,5 @@ def radio_status_since(since_value, database_url=None):
     return {
         "next_since": next_since,
         "count": len(changed),
-        "changed": changed,
+        "changedRadios": changed,
     }

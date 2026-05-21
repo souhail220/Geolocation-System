@@ -106,3 +106,19 @@ def persist_changed_radios(database_url, radios):
             if changed:
                 return upsert_changes(cursor, changed)
             return []
+
+
+def cleanup_old_change_logs(database_url, retention_hours):
+    if retention_hours <= 0:
+        return 0
+
+    with psycopg2.connect(database_url) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                DELETE FROM radio_change_log
+                WHERE changed_at < now() - (%s * interval '1 hour')
+                """,
+                (retention_hours,),
+            )
+            return cursor.rowcount

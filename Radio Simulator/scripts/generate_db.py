@@ -25,7 +25,13 @@ if not DATABASE_URL:
 
 # SQLAlchemy setup
 Base = declarative_base()
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    connect_args={
+        "connect_timeout": int(os.getenv("DATABASE_CONNECT_TIMEOUT_SECONDS", "10")),
+    },
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 class Team(Base):

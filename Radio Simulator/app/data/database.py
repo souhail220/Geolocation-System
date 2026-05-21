@@ -16,7 +16,13 @@ if not DATABASE_URL:
     raise ValueError("DATABASE_URL is not set in the .env file")
 
 # pool_pre_ping avoids using stale connections after DB idle timeouts
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    connect_args={
+        "connect_timeout": int(os.getenv("DATABASE_CONNECT_TIMEOUT_SECONDS", "10")),
+    },
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

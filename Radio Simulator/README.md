@@ -188,6 +188,19 @@ It logs each cycle like:
 [poller] 47 / 5000 changed
 ```
 
+The poller also cleans old `radio_change_log` rows at app level. By default it
+keeps the last 24 hours:
+
+```env
+RADIO_CHANGE_LOG_RETENTION_HOURS=24
+```
+
+When cleanup removes rows, it logs:
+
+```text
+[poller] cleaned 18422 old radio_change_log rows
+```
+
 The poller is exposed as a reusable service:
 
 ```python
@@ -211,7 +224,14 @@ Supported webhook event types:
 - `geo_breach`
 - `radio_stolen`
 
-Webhook calls are dispatched concurrently and retried with exponential backoff.
+Webhook calls are dispatched concurrently in background workers. If a webhook
+server is offline, delivery is retried with exponential backoff until the
+server responds successfully. Retry timing is controlled by:
+
+```env
+WEBHOOK_RETRY_INITIAL_DELAY_SECONDS=1
+WEBHOOK_RETRY_MAX_DELAY_SECONDS=60
+```
 
 ## Features
 

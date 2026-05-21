@@ -6,33 +6,52 @@ import requests
 logger = logging.getLogger(__name__)
 
 
-def post_with_retry(url, payload, timeout_seconds, backoff_seconds):
-    last_exception = None
-    response = None
+def post_until_delivered(url, payload, config):
+    delay = config.retry_initial_delay_seconds
+    attempt = 0
 
-    for attempt in range(len(backoff_seconds) + 1):
+    while True:
+        attempt += 1
         try:
-            response = requests.post(url, json=payload, timeout=timeout_seconds)
+            response = requests.post(url, json=payload, timeout=config.timeout_seconds)
             if 200 <= response.status_code < 300:
                 return response
+
+            if response.status_code < 500:
+                logger.warning(
+                    "[webhook] %s → %s → %s %s; not retrying client error",
+                    payload["event_type"],
+                    url,
+                    response.status_code,
+                    response.reason,
+                )
+                return response
+
+            logger.warning(
+                "[webhook] %s → %s attempt=%d returned %s %s; retrying in %.1fs",
+                payload["event_type"],
+                url,
+                attempt,
+                response.status_code,
+                response.reason,
+                delay,
+            )
         except requests.RequestException as exc:
-            last_exception = exc
+            logger.warning(
+                "[webhook] %s → %s attempt=%d unavailable: %s; retrying in %.1fs",
+                payload["event_type"],
+                url,
+                attempt,
+                exc,
+                delay,
+            )
 
-        if attempt < len(backoff_seconds):
-            time.sleep(backoff_seconds[attempt])
-
-    if last_exception:
-        raise last_exception
-    return response
+        time.sleep(delay)
+        delay = min(delay * 2, config.retry_max_delay_seconds)
 
 
 def dispatch_webhook(webhook, event_payload, config):
-    response = post_with_retry(
-        webhook["url"],
-        event_payload,
-        timeout_seconds=config.timeout_seconds,
-        backoff_seconds=config.backoff_seconds,
-    )
+    response = post_until_delivered(webhook["url"], event_payload, config)
     logger.info(
         "[webhook] %s → %s (team: %s) → %s → %s %s",
         event_payload["event_type"],

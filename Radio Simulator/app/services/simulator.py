@@ -2,10 +2,11 @@ import logging
 import time
 
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import text
 from sqlalchemy.orm import selectinload
 
 from app.configuration.config import (LOOP_SLEEP, SERVER_HOST, SERVER_PORT, SIMULATION_STATUS_LOG_INTERVAL_SECONDS, USE_TUNISIA_GEOFENCE_FALLBACK,)
-from app.data.database import SessionLocal, TeamModel
+from app.data.database import RadioModel, SessionLocal, TeamModel
 from app.data.models import Team
 from app.server.server import global_state, global_state_lock, start_server
 from app.services.geofence_service import (MissingGeofenceError, add_tunisia_fallback_geofences, load_team_geofence_map, require_team_geofence)
@@ -22,6 +23,19 @@ class Simulator:
         db = SessionLocal()
         try:
             try:
+                logger.info("Checking database connection.")
+                db.execute(text("SELECT 1"))
+                logger.info("Database connection is ready.")
+
+                logger.info("Counting teams and radios before loading simulator state.")
+                team_count = db.query(TeamModel).count()
+                radio_count = db.query(RadioModel).count()
+                logger.info(
+                    "Database contains %d team row(s) and %d radio row(s).",
+                    team_count,
+                    radio_count,
+                )
+
                 logger.info("Loading teams and radios from database.")
                 db_teams = (
                     db.query(TeamModel)
