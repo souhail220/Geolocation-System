@@ -10,6 +10,7 @@ import com.geolocation.authservice.repositories.TeamRepository;
 import com.geolocation.authservice.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -98,5 +99,9 @@ public class TeamService {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw new RuntimeException(e);
         }
+    }
+
+    public List<Geofences> getGeofencesByTeamId(long teamId) {
+        return geofenceRepository.findByTeamId(teamId);
     }
 }

@@ -5,9 +5,8 @@ import com.geolocation.authservice.data.entities.Team;
 import com.geolocation.authservice.services.TeamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -35,5 +34,15 @@ public class TeamController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    // Geofence overlay for the map
+    @GetMapping("/geofences/{teamId}")
+    public ResponseEntity<List<Geofences>> geofencesByTeamId(
+            @PathVariable long teamId
+    ) {
+        return ResponseEntity.ok(
+                teamService.getGeofencesByTeamId(teamId)
+        );
     }
 }
