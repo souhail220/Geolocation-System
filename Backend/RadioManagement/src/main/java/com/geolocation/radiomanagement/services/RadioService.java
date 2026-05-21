@@ -2,6 +2,7 @@ package com.geolocation.radiomanagement.services;
 
 import com.geolocation.radiomanagement.data.entities.Radio;
 import com.geolocation.radiomanagement.data.model.RadioSimDTO;
+import com.geolocation.radiomanagement.repositories.CurrentLocationRepository;
 import com.geolocation.radiomanagement.repositories.RadioRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -23,12 +24,17 @@ public class RadioService {
     private final WebClient webClient;
     private final ModelMapper modelMapper;
     private final RadioRepository radioRepository;
+    private final CurrentLocationRepository currentLocationRepository;
 
     @Autowired
-    public RadioService(WebClient.Builder builder, ModelMapper modelMapper, RadioRepository radioRepository) {
+    public RadioService(
+            WebClient.Builder builder, ModelMapper modelMapper,
+            RadioRepository radioRepository, CurrentLocationRepository currentLocationRepository
+    ) {
         this.webClient = builder.baseUrl("http://localhost:80").build();
         this.modelMapper = modelMapper;
         this.radioRepository = radioRepository;
+        this.currentLocationRepository = currentLocationRepository;
     }
 
     public Flux<RadioSimDTO> streamRadios() {
@@ -77,5 +83,6 @@ public class RadioService {
                 .map(total -> "Saved " + total + " radios successfully")
                 .doOnError(ex -> log.error("Failed saving radios", ex));
     }
+
 
 }

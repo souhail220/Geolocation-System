@@ -1,15 +1,16 @@
 package com.geolocation.radiomanagement.data.model;
 
-import lombok.Data;
 import java.math.BigDecimal;
 
-@Data
-public class ClusterProjection {
+public interface ClusterProjection {
 
-    private Double longitude;
-    private Double latitude;
-    private Long count;
-    private Long stolenCount;
-    private Long inactiveCount;
-    private BigDecimal avgBattery;
+    Double getLongitude();
+
+    Double getLatitude();
+
+    Long getCount();
+
+    Long getInactiveCount();
+
+    BigDecimal getAvgBattery();
 }

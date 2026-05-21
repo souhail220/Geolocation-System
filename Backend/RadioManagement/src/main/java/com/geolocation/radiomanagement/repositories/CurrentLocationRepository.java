@@ -23,8 +23,6 @@ public interface CurrentLocationRepository extends JpaRepository<CurrentLocation
       cl.signal_strength AS signalStrength,
       cl.timestamp AS timestamp,
       r.name AS name,
-      r.status AS status,
-      r.is_stolen AS isStolen,
       r.serial_number AS serialNumber,
       r.team_id AS teamId
     FROM current_location cl
@@ -43,33 +41,22 @@ public interface CurrentLocationRepository extends JpaRepository<CurrentLocation
     // Low zoom: geohash clusters
     @Query(value = """
     SELECT
-      ST_X(ST_Centroid(ST_Collect(cl.geom::geometry))) AS lng,
-      ST_Y(ST_Centroid(ST_Collect(cl.geom::geometry))) AS lat,
-      COUNT(*) AS count,
-      SUM(CASE WHEN r.is_stolen THEN 1 ELSE 0 END) AS stolenCount,
-      SUM(CASE WHEN r.status = 'INACTIVE' THEN 1 ELSE 0 END) AS inactiveCount,
-      AVG(cl.battery_level) AS avgBattery
+      ST_X(ST_Centroid(ST_Collect(cl.geom::geometry))) AS "longitude",
+      ST_Y(ST_Centroid(ST_Collect(cl.geom::geometry))) AS "latitude",
+      COUNT(*) AS "count",
+      SUM(CASE WHEN NOT r.active THEN 1 ELSE 0 END) AS "inactiveCount",
+      AVG(cl.battery_level) AS "avgBattery"
     FROM current_location cl
     JOIN radio r ON r.id = cl.radio_id
     WHERE ST_Within(
       cl.geom::geometry,
       ST_MakeEnvelope(:minLng,:minLat,:maxLng,:maxLat,4326)
     )
-    GROUP BY ST_GeoHash(cl.geom::geometry, :precision)
+    GROUP BY ST_GeoHash(cl.geom::geometry, CAST(:precision AS integer))
     """, nativeQuery = true)
     List<ClusterProjection> clusterInBounds(
             @Param("minLng") double minLng, @Param("minLat") double minLat,
             @Param("maxLng") double maxLng, @Param("maxLat") double maxLat,
             @Param("precision") int precision
     );
-
-    // Geofence check: radios outside their assigned zone
-    @Query(value = """
-    SELECT cl.radio_id
-    FROM current_location cl
-    JOIN radio   r  ON r.id = cl.radio_id
-    JOIN geofences g ON g.team_id = r.team_id
-    WHERE NOT ST_Within(cl.geom::geometry, g.geom::geometry)
-    """, nativeQuery = true)
-    List<UUID> findRadiosOutsideZone();
 }

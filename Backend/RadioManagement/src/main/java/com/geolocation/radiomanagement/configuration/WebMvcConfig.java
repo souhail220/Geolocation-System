@@ -15,6 +15,7 @@ import java.time.OffsetDateTime;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     private static final long ASYNC_REQUEST_TIMEOUT_MILLIS = 300_000;
+    private static final int WEBCLIENT_MAX_IN_MEMORY_SIZE = 16 * 1024 * 1024;
 
     @Bean
     public ModelMapper modelMapper(){
@@ -30,7 +31,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Bean
     public WebClient.Builder webClientBuilder(){
-        return WebClient.builder();
+        return WebClient.builder()
+                .codecs(configurer -> configurer
+                        .defaultCodecs()
+                        .maxInMemorySize(WEBCLIENT_MAX_IN_MEMORY_SIZE));
     }
 
     @Override
