@@ -20,15 +20,13 @@ export function formatTs(ts: number): string {
 export function escapeHtml(s: string): string {
   return s.replace(
     /[&<>"']/g,
-    (c) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string),
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string,
   );
 }
 
 export function buildPopupHtml(r: Radio): string {
   const status = radioStatus(r);
-  const statusLabel =
-    status === "active" ? "Actif" : status === "inactive" ? "Inactif" : "Volé";
+  const statusLabel = status === "active" ? "Actif" : status === "inactive" ? "Inactif" : "Volé";
   const statusColor =
     status === "active" ? "#059669" : status === "inactive" ? "#D97706" : "#DC2626";
   const battColor = batteryColor(r.battery);

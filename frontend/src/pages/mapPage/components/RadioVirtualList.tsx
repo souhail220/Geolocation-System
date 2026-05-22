@@ -15,7 +15,7 @@ export function RadioVirtualList({ radios, onSelect, selectedId }: RadioVirtualL
         rowComponent={RadioRow}
         rowCount={radios.length}
         rowHeight={84}
-        rowProps={{ radios, onSelect, selectedId } as any}
+        rowProps={{ radios, onSelect, selectedId } as never}
         style={{ height: "100%", width: "100%" }}
       />
     </div>
