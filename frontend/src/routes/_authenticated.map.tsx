@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 
-const MapPage = lazy(() => import("@/components/map/MapPage"));
+const MapPage = lazy(() => import("@/pages/mapPage/MapPage.tsx"));
 
 export default function MapRoute() {
   return (
