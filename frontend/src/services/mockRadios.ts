@@ -1,15 +1,40 @@
-import type { Radio } from "@/types/radio";
+import { Radio } from "@/types/Radio.ts";
 
 const NAMES = [
-  "Nearly Tracker", "Falcon Beacon", "Sentinel One", "Coastal Watch", "Desert Echo",
-  "Sahara Pulse", "Atlas Comm", "North Wind", "Silver Hawk", "Olive Branch",
-  "Iron Owl", "Quiet River", "Bright Compass", "Deep Signal", "Cedar Relay",
-  "Ranger Node", "Valley Scout", "Stone Beacon", "Desert Fox", "Patrol Mark",
+  "Nearly Tracker",
+  "Falcon Beacon",
+  "Sentinel One",
+  "Coastal Watch",
+  "Desert Echo",
+  "Sahara Pulse",
+  "Atlas Comm",
+  "North Wind",
+  "Silver Hawk",
+  "Olive Branch",
+  "Iron Owl",
+  "Quiet River",
+  "Bright Compass",
+  "Deep Signal",
+  "Cedar Relay",
+  "Ranger Node",
+  "Valley Scout",
+  "Stone Beacon",
+  "Desert Fox",
+  "Patrol Mark",
 ];
 const TEAMS = [
-  "Team Gonzalez, Cole and Henry", "Team Bravo", "Team Sierra", "Team Lambda",
-  "Équipe Nord", "Équipe Sud", "Équipe Côtière", "Équipe Mobile", "Équipe Alpha",
-  "Équipe Delta", "Équipe Tango", "Équipe Foxtrot",
+  "Team Gonzalez, Cole and Henry",
+  "Team Bravo",
+  "Team Sierra",
+  "Team Lambda",
+  "Équipe Nord",
+  "Équipe Sud",
+  "Équipe Côtière",
+  "Équipe Mobile",
+  "Équipe Alpha",
+  "Équipe Delta",
+  "Équipe Tango",
+  "Équipe Foxtrot",
 ];
 
 function rand(min: number, max: number): number {

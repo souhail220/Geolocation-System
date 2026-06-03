@@ -1,12 +1,21 @@
 package com.geolocation.radiomanagement.services;
 
 import com.geolocation.radiomanagement.data.model.webhook.WebhookEvent;
+import com.geolocation.radiomanagement.repositories.CurrentLocationRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
 public class WebhookService {
+
+    private final CurrentLocationRepository currentLocationRepository;
+
+    @Autowired
+    public WebhookService(CurrentLocationRepository currentLocationRepository) {
+        this.currentLocationRepository = currentLocationRepository;
+    }
 
     public void handle(WebhookEvent event) {
         switch (event.getEventType()) {
@@ -26,7 +35,7 @@ public class WebhookService {
                 event.getPayload().getLat(),
                 event.getPayload().getLng()
         );
-        // TODO: push alert to frontend via WebSocket
+        updateOutsideZoneStatus(event, true);
     }
 
     private void handleStolen(WebhookEvent event) {
@@ -35,7 +44,7 @@ public class WebhookService {
                 event.getPayload().getLat(),
                 event.getPayload().getLng()
         );
-        // TODO: flag radio in DB, notify team
+        updateStolenStatus(event, true);
     }
 
     private void handleBatteryCritical(WebhookEvent event) {
@@ -58,6 +67,29 @@ public class WebhookService {
         log.info("INACTIVE — radio {} is no longer active",
                 event.getSerialNumber()
         );
-        // TODO: update radio status in DB
+        updateActiveStatus(event, false);
+    }
+
+    private void updateOutsideZoneStatus(WebhookEvent event, boolean outsideZone) {
+        int updatedRows = currentLocationRepository.updateOutsideZoneStatus(event.getRadioId(), outsideZone);
+        logStatusUpdateResult(event, "outsideZone", updatedRows);
+    }
+
+    private void updateStolenStatus(WebhookEvent event, boolean stolen) {
+        int updatedRows = currentLocationRepository.updateStolenStatus(event.getRadioId(), stolen);
+        logStatusUpdateResult(event, "stolen", updatedRows);
+    }
+
+    private void updateActiveStatus(WebhookEvent event, boolean active) {
+        int updatedRows = currentLocationRepository.updateActiveStatus(event.getRadioId(), active);
+        logStatusUpdateResult(event, "active", updatedRows);
+    }
+
+    private void logStatusUpdateResult(WebhookEvent event, String statusName, int updatedRows) {
+        if (updatedRows == 0) {
+            log.warn("No current_location row found for radio {} while updating {}", event.getRadioId(), statusName);
+        } else {
+            log.debug("Updated current_location {} for radio {}", statusName, event.getRadioId());
+        }
     }
 }

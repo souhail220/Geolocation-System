@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface GeofenceRepository extends JpaRepository<Geofences, UUID> {
-    List<Geofences> findByTeamId(long team_id);
+    List<Geofences> findByTeam_Id(long teamId);
 }

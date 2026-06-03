@@ -28,7 +28,7 @@ public class Geofences {
     @ManyToOne
     private User createdBy;
 
-    @OneToOne
+    @ManyToOne
     private Team team;
 
     private LocalDateTime createdAt;

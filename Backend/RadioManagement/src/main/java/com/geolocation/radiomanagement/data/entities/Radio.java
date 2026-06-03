@@ -8,6 +8,7 @@ import java.time.ZoneOffset;
 
 @Data
 @Entity
+@Table(name = "radios")
 public class Radio {
 
     @Id

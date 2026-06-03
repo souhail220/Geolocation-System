@@ -11,19 +11,36 @@ services:
     networks:
       - backend-network
 
-  notification-service:
-    image: ditoo2/geo-notificationservice:latest
-    container_name: NotificationService
-    ports:
-      - "8082:8082"
-    networks:
-      - backend-network
-
   radio-management-service:
     image: ditoo2/geo-radioservice:latest
     container_name: RadioManagementService
     ports:
       - "8081:8081"
+    networks:
+      - backend-network
+
+  radio-simulator:
+    build:
+      context: ./Radio Simulator
+    container_name: RadioSimulator
+    ports:
+      - "80:80"
+      - "81:81"
+    environment:
+      - DATABASE_URL=postgresql://Ditoo2:npg_CpG6mKYlTd0o@ep-shrill-cherry-a8kycf0v-pooler.eastus2.azure.neon.tech/RadioAuthDB?sslmode=require&channelBinding=require
+    networks:
+      - backend-network
+
+  api-gateway:
+    build:
+      context: ./Backend/ApiGateway
+    container_name: ApiGateway
+    ports:
+      - "8083:8080"
+    depends_on:
+      - auth-service
+      - radio-management-service
+      - radio-simulator
     networks:
       - backend-network
 

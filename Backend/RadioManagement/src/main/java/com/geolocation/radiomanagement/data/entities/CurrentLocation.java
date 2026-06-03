@@ -32,4 +32,13 @@ public class CurrentLocation {
     @Column(precision = 5, scale = 2)
     private BigDecimal batteryLevel;
     private Integer signalStrength;
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean active = true;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean stolen;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean outsideZone;
 }

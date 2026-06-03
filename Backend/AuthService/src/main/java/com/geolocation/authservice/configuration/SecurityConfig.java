@@ -4,6 +4,7 @@ import com.geolocation.authservice.services.MyUserDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -44,7 +45,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize ->
                         authorize
                                 .requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 .requestMatchers("/api/simulators/**").permitAll()
+                                .requestMatchers("/simulators/**").permitAll()
+                                .requestMatchers("/simulator-api/simulators/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->

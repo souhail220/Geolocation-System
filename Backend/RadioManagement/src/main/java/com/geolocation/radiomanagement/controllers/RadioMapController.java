@@ -2,7 +2,9 @@ package com.geolocation.radiomanagement.controllers;
 
 import com.geolocation.radiomanagement.data.entities.Radio;
 import com.geolocation.radiomanagement.data.model.BBox;
+import com.geolocation.radiomanagement.data.model.RadioHistoryLocationProjection;
 import com.geolocation.radiomanagement.repositories.CurrentLocationRepository;
+import com.geolocation.radiomanagement.repositories.LocationHistoryRepository;
 import com.geolocation.radiomanagement.repositories.RadioRepository;
 import com.geolocation.radiomanagement.services.RadioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,14 +23,19 @@ public class RadioMapController {
     private final RadioService radioService;
     private final CurrentLocationRepository repo;
     private final RadioRepository radioRepo;
+    private final LocationHistoryRepository locationHistoryRepository;
 
     @Autowired
     public RadioMapController(
-            RadioService radioService, CurrentLocationRepository repo, RadioRepository radioRepo
+            RadioService radioService,
+            CurrentLocationRepository repo,
+            RadioRepository radioRepo,
+            LocationHistoryRepository locationHistoryRepository
     ){
         this.radioService = radioService;
         this.repo = repo;
         this.radioRepo = radioRepo;
+        this.locationHistoryRepository = locationHistoryRepository;
     }
 
     @GetMapping(produces = MediaType.TEXT_PLAIN_VALUE)
@@ -72,5 +79,16 @@ public class RadioMapController {
         return radioRepo.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/history-location")
+    public ResponseEntity<List<RadioHistoryLocationProjection>> historyLocation(
+            @PathVariable String id
+    ) {
+        if (!radioRepo.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(locationHistoryRepository.findTrailByRadioId(id));
     }
 }

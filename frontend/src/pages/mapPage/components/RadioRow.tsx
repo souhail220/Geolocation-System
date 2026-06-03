@@ -1,5 +1,5 @@
 import { Radio } from "@/types/Radio.ts";
-import { batteryColor, radioStatus } from "@/lib/radioUtils.ts";
+import { batteryColor, clampPercent, formatBattery, formatSignal, radioStatus } from "@/lib/radioUtils.ts";
 import { CSSProperties } from "react";
 
 interface RadioRowProps {
@@ -18,6 +18,7 @@ export function RadioRow({ index, style, radios, onSelect, selectedId }: RadioRo
   const dot =
     status === "active" ? "bg-success" : status === "inactive" ? "bg-warning" : "bg-danger";
   const battColor = batteryColor(r.battery);
+  const batteryPct = clampPercent(r.battery);
   const isSelected = r.radioId === selectedId;
 
   return (
@@ -47,13 +48,17 @@ export function RadioRow({ index, style, radios, onSelect, selectedId }: RadioRo
                 <div
                   className="h-full rounded"
                   style={{
-                    width: `${Math.max(0, Math.min(100, r.battery))}%`,
+                    width: `${batteryPct}%`,
                     background: battColor,
                   }}
                 />
               </div>
-              <span className="text-[11px] tabular-nums text-slate">{r.battery.toFixed(0)}%</span>
-              <span className="text-[11px] tabular-nums text-slate">{r.signalStrength} dBm</span>
+              <span className="text-[11px] tabular-nums text-slate">
+                {formatBattery(r.battery)}
+              </span>
+              <span className="text-[11px] tabular-nums text-slate">
+                {formatSignal(r.signalStrength)}
+              </span>
             </div>
           </div>
         </div>

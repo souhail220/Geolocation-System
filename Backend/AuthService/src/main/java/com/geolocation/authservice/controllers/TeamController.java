@@ -36,8 +36,7 @@ public class TeamController {
         }
     }
 
-    // Geofence overlay for the map
-    @GetMapping("/geofences/{teamId}")
+    @GetMapping({"/teams/{teamId}/geofences", "/geofences/{teamId}"})
     public ResponseEntity<List<Geofences>> geofencesByTeamId(
             @PathVariable long teamId
     ) {

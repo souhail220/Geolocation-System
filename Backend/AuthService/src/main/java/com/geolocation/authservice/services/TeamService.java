@@ -10,10 +10,11 @@ import com.geolocation.authservice.repositories.TeamRepository;
 import com.geolocation.authservice.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
@@ -102,6 +103,10 @@ public class TeamService {
     }
 
     public List<Geofences> getGeofencesByTeamId(long teamId) {
-        return geofenceRepository.findByTeamId(teamId);
+        if (!teamRepository.existsById(teamId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found: " + teamId);
+        }
+
+        return geofenceRepository.findByTeam_Id(teamId);
     }
 }

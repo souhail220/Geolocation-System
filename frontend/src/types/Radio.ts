@@ -3,6 +3,7 @@ export interface Radio {
   serialNumber: string;
   name: string;
   team: string;
+  teamId?: number;
   isStolen: boolean;
   latitude: number;
   longitude: number;

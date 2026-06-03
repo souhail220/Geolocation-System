@@ -1,6 +1,16 @@
+import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import { Radio } from "@/types/Radio.ts";
-import { batteryColor, formatTs, radioStatus } from "@/lib/radioUtils.ts";
+import {
+  batteryColor,
+  clampPercent,
+  formatBattery,
+  formatCoordinates,
+  formatSignal,
+  formatTs,
+  radioStatus,
+  signalStrengthPercent,
+} from "@/lib/radioUtils.ts";
 
 interface DetailPanelProps {
   radio: Radio;
@@ -22,6 +32,7 @@ function Row({ label, value }: RowProps) {
 }
 
 export function DetailPanel({ radio, onClose }: DetailPanelProps) {
+  const navigate = useNavigate();
   const status = radioStatus(radio);
   const statusLabel = status === "active" ? "Actif" : status === "inactive" ? "Inactif" : "Volé";
   const statusCls =
@@ -32,8 +43,8 @@ export function DetailPanel({ radio, onClose }: DetailPanelProps) {
         : "bg-danger/10 text-danger";
 
   const battColor = batteryColor(radio.battery);
-  // Signal: -50 = 100%, -120 = 0%
-  const signalPct = Math.max(0, Math.min(100, ((radio.signalStrength + 120) / 70) * 100));
+  const batteryPct = clampPercent(radio.battery);
+  const signalPct = signalStrengthPercent(radio.signalStrength);
 
   return (
     <div
@@ -67,12 +78,12 @@ export function DetailPanel({ radio, onClose }: DetailPanelProps) {
         <div>
           <div className="mb-1 flex items-center justify-between text-xs text-slate">
             <span>Batterie</span>
-            <span className="tabular-nums">{radio.battery.toFixed(0)}%</span>
+            <span className="tabular-nums">{formatBattery(radio.battery)}</span>
           </div>
           <div className="h-2 rounded bg-muted overflow-hidden">
             <div
               className="h-full rounded"
-              style={{ width: `${radio.battery}%`, background: battColor }}
+              style={{ width: `${batteryPct}%`, background: battColor }}
             />
           </div>
         </div>
@@ -80,17 +91,14 @@ export function DetailPanel({ radio, onClose }: DetailPanelProps) {
         <div>
           <div className="mb-1 flex items-center justify-between text-xs text-slate">
             <span>Signal</span>
-            <span className="tabular-nums">{radio.signalStrength} dBm</span>
+            <span className="tabular-nums">{formatSignal(radio.signalStrength)}</span>
           </div>
           <div className="h-2 rounded bg-muted overflow-hidden">
             <div className="h-full rounded bg-blue-accent" style={{ width: `${signalPct}%` }} />
           </div>
         </div>
 
-        <Row
-          label="Coordonnées"
-          value={`${radio.latitude.toFixed(5)}, ${radio.longitude.toFixed(5)}`}
-        />
+        <Row label="Coordonnées" value={formatCoordinates(radio.latitude, radio.longitude)} />
         <Row label="Dernière mise à jour" value={formatTs(radio.timestamp)} />
 
         {radio.outsideZone && (
@@ -107,7 +115,10 @@ export function DetailPanel({ radio, onClose }: DetailPanelProps) {
 
       {/* Footer actions */}
       <div className="grid grid-cols-2 gap-2 border-t border-border p-3">
-        <button className="rounded-md border border-border bg-white px-3 py-2 text-xs font-medium text-navy hover:bg-muted">
+        <button
+          onClick={() => navigate("/history", { state: { radioId: radio.radioId } })}
+          className="rounded-md border border-border bg-white px-3 py-2 text-xs font-medium text-navy hover:bg-muted"
+        >
           Voir l'historique
         </button>
         <button className="rounded-md bg-blue-accent px-3 py-2 text-xs font-medium text-white hover:bg-blue-accent/90">

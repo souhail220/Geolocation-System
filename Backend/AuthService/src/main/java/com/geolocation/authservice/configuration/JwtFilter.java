@@ -21,11 +21,28 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final MyUserDetailService userDetailService;
+    private static final String[] PUBLIC_PATHS = {
+            "/api/auth/",
+            "/api/simulators/",
+            "/simulators/",
+            "/simulator-api/simulators/"
+    };
 
     @Autowired
     public JwtFilter(JwtService jwtService, MyUserDetailService userDetailService){
         this.jwtService = jwtService;
         this.userDetailService = userDetailService;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        String path = request.getRequestURI();
+        for (String publicPath : PUBLIC_PATHS) {
+            if (path.startsWith(publicPath)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

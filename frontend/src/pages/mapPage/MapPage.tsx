@@ -3,8 +3,7 @@ import { MapContainer, TileLayer } from "react-leaflet";
 import { MapPin } from "lucide-react";
 
 import { useRadioStore, selectFilteredRadios } from "@/store/radioStore.ts";
-import { generateMockRadios } from "@/services/mockRadios.ts";
-import { startSimulation, stopSimulation } from "@/services/socket.ts";
+import { subscribeToRadioLocations } from "@/services/getRadioService.ts";
 import { Radio } from "@/types/Radio.ts";
 import "./map.css";
 import { PanTo } from "./components/PanTo.tsx";
@@ -15,6 +14,8 @@ import { DetailPanel } from "./components/DetailPanel.tsx";
 import { MobileDrawer } from "./components/MobileDrawer.tsx";
 import { Sidebar } from "./components/Sidebar.tsx";
 import { SidebarHeader } from "./components/SidebarHeader.tsx";
+import { GeofenceLayer, type GeofenceStatus } from "./components/GeofenceLayer.tsx";
+import { GeofenceToggle } from "./components/GeofenceToggle.tsx";
 
 import { TILE_LAYERS, TileKey } from "@/lib/tileLayers.ts";
 import { ClusteredMarkers } from "@/pages/mapPage/components/ClusteredMarkers.tsx";
@@ -22,7 +23,7 @@ import { ClusteredMarkers } from "@/pages/mapPage/components/ClusteredMarkers.ts
 export default function MapPage() {
   // — Store —
   const radios = useRadioStore((s) => s.radios);
-  const setRadios = useRadioStore((s) => s.setRadios);
+  const upsertRadios = useRadioStore((s) => s.upsertRadios);
   const filterStatus = useRadioStore((s) => s.filterStatus);
   const setFilterStatus = useRadioStore((s) => s.setFilterStatus);
   const searchQuery = useRadioStore((s) => s.searchQuery);
@@ -35,15 +36,21 @@ export default function MapPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [panTarget, setPanTarget] = useState<Radio | null>(null);
+  const [showGeofences, setShowGeofences] = useState(false);
+  const [geofenceStatus, setGeofenceStatus] = useState<GeofenceStatus>({
+    count: 0,
+    error: null,
+    loading: false,
+  });
 
   // — Bootstrap —
   useEffect(() => {
-    if (useRadioStore.getState().radios.length === 0) {
-      setRadios(generateMockRadios(5000));
-    }
-    startSimulation(5000);
-    return () => stopSimulation();
-  }, [setRadios]);
+    const source = subscribeToRadioLocations({
+      onRadios: upsertRadios,
+    });
+
+    return () => source?.close();
+  }, [upsertRadios]);
 
   // — Derived data —
   const filtered = useMemo(
@@ -62,6 +69,22 @@ export default function MapPage() {
     }
     return { total: radios.length, active, offline, stolen };
   }, [radios]);
+
+  const geofenceTeamIds = useMemo(() => {
+    const source = selectedRadio ? [selectedRadio] : filtered;
+    const ids = new Set<number>();
+
+    for (const radio of source) {
+      const parsedTeamId =
+        radio.teamId ?? Number.parseInt(radio.team.match(/\d+/)?.[0] ?? "", 10);
+
+      if (Number.isFinite(parsedTeamId)) {
+        ids.add(parsedTeamId);
+      }
+    }
+
+    return Array.from(ids);
+  }, [filtered, selectedRadio]);
 
   // — Handlers —
   const handleSelect = (r: Radio) => {
@@ -142,11 +165,24 @@ export default function MapPage() {
               url={TILE_LAYERS[tileKey].url}
               attribution={TILE_LAYERS[tileKey].attribution}
             />
+            <GeofenceLayer
+              enabled={showGeofences}
+              teamIds={geofenceTeamIds}
+              onStatusChange={setGeofenceStatus}
+            />
             <ClusteredMarkers radios={filtered} onSelect={handleSelect} />
             <PanTo target={panTarget} />
           </MapContainer>
 
           <TileSwitcher value={tileKey} onChange={setTileKey} />
+          <GeofenceToggle
+            count={geofenceStatus.count}
+            enabled={showGeofences}
+            error={geofenceStatus.error}
+            disabled={geofenceTeamIds.length === 0}
+            loading={geofenceStatus.loading}
+            onToggle={() => setShowGeofences((enabled) => !enabled)}
+          />
         </div>
       </div>
 
